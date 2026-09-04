@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapOG — Beautiful OG Images at the Edge</title>
+  <meta name="description" content="Generate beautiful Open Graph images via one API endpoint. Edge-cached globally. Beautiful by default." />
+  <meta property="og:title" content="SnapOG — Beautiful OG Images at the Edge" />
+  <meta property="og:description" content="One API endpoint. Edge-cached globally. Beautiful by default." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Custom Properties ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:          #07070F;
+      --bg-surface:  #0D0D1A;
+      --bg-card:     #10101E;
+      --border:      #1E1E2D;
+      --border-hi:   #2A2A3D;
+      --accent:      #C8FF00;
+      --accent-dim:  rgba(200, 255, 0, 0.12);
+      --accent-glow: rgba(200, 255, 0, 0.25);
+      --coral:       #FF4D6D;
+      --coral-dim:   rgba(255, 77, 109, 0.12);
+      --text-hi:     #EEEEF5;
+      --text-lo:     #A0A0B8;
+      --text-xlo:    #5A5A72;
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Mulish', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      --grid-size:    60px;
+      --radius:       12px;
+      --radius-lg:    20px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Global Grid Overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.03) 1px, transparent 1px);
+      background-size: var(--grid-size) var(--grid-size);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Utility ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shimmer {
+      0%   { transform: translateX(-100%) skewX(-12deg); }
+      100% { transform: translateX(250%) skewX(-12deg); }
+    }
+
+    @keyframes scan {
+      0%   { top: -4px; opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.6; }
+      100% { top: calc(100% + 4px); opacity: 0; }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(-1deg); }
+      50%       { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 0.7s ease both;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #07070F;
+    }
+
+    .btn-accent:hover {
+      background: #d4ff1a;
+      box-shadow: 0 0 24px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-hi);
+      border: 1px solid var(--border-hi);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .btn-lg {
+      padding: 14px 28px;
+      font-size: 15px;
+      border-radius: 10px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 0;
+      transition: background 0.3s ease, border-color 0.3s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    nav.scrolled {
+      background: rgba(7, 7, 15, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom-color: var(--border);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: var(--text-hi);
+    }
+
+    .nav-logo span {
+      color: var(--accent);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      padding: 100px 0 80px;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(200,255,0,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(200, 255, 0, 0.2);
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease infinite;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 5.5vw, 68px);
+      font-weight: 800;
+      line-height: 1.07;
+      letter-spacing: -2px;
+      color: var(--text-hi);
+      margin-bottom: 24px;
+    }
+
+    .hero-title .accent-word {
+      color: var(--accent);
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-lo);
+      line-height: 1.65;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* ── OG CARD MOCKUP ── */
+    .og-card-wrap {
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .og-card-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(200,255,0,0.3), transparent 50%, rgba(255,77,109,0.15));
+      z-index: 0;
+    }
+
+    .og-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      aspect-ratio: 1200 / 630;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1A1A2E 0%, #0F2027 60%, #0A1628 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow:
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(200,255,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    /* scan line animation */
+    .og-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(200,255,0,0.6), transparent);
+      animation: scan 4s ease-in-out infinite 1s;
+      z-index: 10;
+    }
+
+    /* shimmer overlay */
+    .og-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255,255,255,0.04) 50%,
+        transparent 60%
+      );
+      animation: shimmer 6s ease infinite 2s;
+      z-index: 9;
+    }
+
+    .og-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .og-card-favicon {
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 700;
+      color: #07070F;
+      flex-shrink: 0;
+    }
+
+    .og-card-site {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.5px;
+    }
+
+    .og-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px 0;
+    }
+
+    .og-card-title {
+      font-family: var(--font-display);
+      font-size: clamp(16px, 2.5vw, 24px);
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .og-card-desc {
+      font-family: var(--font-body);
+      font-size: clamp(10px, 1.2vw, 13px);
+      color: rgba(255,255,255,0.5);
+    }
+
+    .og-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .og-card-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 4px 10px;
+      background: rgba(200,255,0,0.12);
+      border: 1px solid rgba(200,255,0,0.25);
+      border-radius: 100px;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .og-card-dim {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* decorative dots on card */
+    .og-card-dots {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 5px;
+      z-index: 5;
+    }
+
+    .og-card-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .og-card-dots span:nth-child(1) { background: #FF5F57; }
+    .og-card-dots span:nth-child(2) { background: #FEBC2E; }
+    .og-card-dots span:nth-child(3) { background: #28C840; }
+
+    /* gradient orbs inside card */
+    .og-card-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .og-card-orb-1 {
+      width: 160px;
+      height: 160px;
+      background: rgba(200,255,0,0.08);
+      bottom: -40px;
+      right: -20px;
+    }
+
+    .og-card-orb-2 {
+      width: 100px;
+      height: 100px;
+      background: rgba(255,77,109,0.08);
+      top: 0;
+      left: 30%;
+    }
+
+    /* ── SECTION SHARED ── */
+    section {
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      color: var(--text-hi);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-it-works {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .how-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .how-step {
+      background: var(--bg-card);
+      padding: 40px 36px;
+      position: relative;
+      transition: background 0.25s;
+    }
+
+    .how-step:hover {
+      background: #121222;
+    }
+
+    .how-step-num {
+      font-family: var(--font-display);
+      font-size: 72px;
+      font-weight: 800;
+      color: rgba(200,255,0,0.07);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -4px;
+      user-select: none;
+    }
+
+    .how-step-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-hi);
+      margin-bottom: 12px;
+    }
+
+    .how-step-desc {
+      font-size: 14px;
+      color: var(--text-lo);
+      line-height: 1.6;
+    }
+
+    .how-step-code {
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .step-arrow {
+      position: absolute;
+      top: 40px;
+      right: -1px;
+      width: 2px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      z-index: 2;
+    }
+
+    /* ── CODE EXAMPLE ── */
+    .code-section {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .code-section .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .code-copy {
+      max-width: 440px;
+    }
+
+    .code-copy p {
+      margin-top: 20px;
+      font-size: 16px;
+      color: var(--text-lo);
+      line-height: 1.7;
+    }
+
+    .code-block-wrap {
+      position: relative;
+    }
+
+    .code-block-wrap::before {
+      content: 'HTML';
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-xlo);
+      letter-spacing: 1px;
+      z-index: 2;
+    }
+
+    .code-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .code-block-header-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-hi);
+    }
+
+    .code-block-header-dot:first-child { background: rgba(255,95,87,0.5); }
+    .code-block-header-dot:nth-child(2) { background: rgba(254,188,46,0.5); }
+    .code-block-header-dot:nth-child(3) { background: rgba(40,200,64,0.5); }
+
+    .code-block pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.8;
+      tab-size: 2;
+    }
+
+    /* CSS syntax highlighting */
+    .tok-tag     { color: #FF7B72; }
+    .tok-attr    { color: #79C0FF; }
+    .tok-val     { color: #A5D6FF; }
+    .tok-cmt     { color: #5A5A72; font-style: italic; }
+    .tok-accent  { color: var(--accent); }
+    .tok-coral   { color: var(--coral); }
+    .tok-hi      { color: var(--text-hi); }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--accent-dim), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(200,255,0,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,255,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-hi);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-lo);
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── PRICING ── */
+    .pricing {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .pricing-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .pricing-header p {
+      margin-top: 16px;
+      font-size: 17px;
+      color: var(--text-lo);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .price-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .price-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+    }
+
+    .price-card.popular {
+      border-color: var(--accent);
+      background: linear-gradient(160deg, rgba(200,255,0,0.04) 0%, var(--bg-card) 60%);
+      box-shadow: 0 0 40px rgba(200,255,0,0.08);
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 14px;
+      background: var(--accent);
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: #07070F;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .price-tier {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-xlo);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .price-amount {
+      font-family: var(--font-display);
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--text-hi);
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .price-amount sup {
+      font-size: 24px;
+      letter-spacing: 0;
+      font-weight: 700;
+      vertical-align: super;
+    }
+
+    .price-period {
+      font-size: 13px;
+      color: var(--text-xlo);
+      margin-bottom: 28px;
+    }
+
+    .price-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 24px;
+    }
+
+    .price-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-lo);
+      margin-bottom: 12px;
+    }
+
+    .price-feature .check {
+      color: var(--accent);
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .price-feature strong {
+      color: var(--text-hi);
+      font-weight: 600;
+    }
+
+    .price-cta {
+      margin-top: 32px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-outline-accent {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid rgba(200,255,0,0.4);
+    }
+
+    .btn-outline-accent:hover {
+      background: var(--accent);
+      color: #07070F;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .cta-inner {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 72px 48px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .cta-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(200,255,0,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(255,77,109,0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .cta-inner .section-label {
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-inner .section-title {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 20px;
+    }
+
+    .cta-subtitle {
+      font-size: 17px;
+      color: var(--text-lo);
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-btn-wrap {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+
+    footer .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-hi);
+    }
+
+    .footer-logo span {
+      color: var(--accent);
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--text-xlo);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-xlo);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-lo);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .hero .container {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .og-card-wrap {
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      .code-section .container {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .code-copy {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 64px 0 48px;
+      }
+
+      .how-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .step-arrow {
+        display: none;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .nav-actions .btn-ghost {
+        display: none;
+      }
+
+      footer .container {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .footer-links {
+        gap: 16px;
+      }
+
+      .cta-inner {
+        padding: 48px 24px;
+      }
+
+      .how-step {
+        padding: 32px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-ctas {
+        flex-direction: column;
+      }
+
+      .hero-ctas .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── NAV ── -->
+  <nav id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">Snap<span>OG</span></a>
+      <div class="nav-actions">
+        <a href="https://github.com/Valere3162/snapog" target="_blank" rel="noopener" class="btn btn-ghost">
+          ☆ Star on GitHub
+        </a>
+        <a href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+" target="_blank" rel="noopener" class="btn btn-accent">
+          Get Early Access
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="container">
+      <!-- Left copy -->
+      <div class="hero-copy">
+        <div class="hero-badge animate-fade-up">
+          <span class="hero-badge-dot"></span>
+          ✦ Open for Early Access
+        </div>
+
+        <h1 class="hero-title animate-fade-up delay-1">
+          Generate Perfect<br />OG Images.<br />
+          <span class="accent-word">In Milliseconds.</span>
+        </h1>
+
+        <p class="hero-subtitle animate-fade-up delay-2">
+          One API endpoint. Edge-cached globally.<br />Beautiful by default.
+        </p>
+
+        <div class="hero-ctas animate-fade-up delay-3">
+          <a
+            href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+"
+            target="_blank" rel="noopener"
+            class="btn btn-accent btn-lg"
+          >
+            Get Early Access ↗
+          </a>
+          <a
+            href="https://github.com/Valere3162/snapog"
+            target="_blank" rel="noopener"
+            class="btn btn-ghost btn-lg"
+          >
+            ☆ View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: OG Card Mockup -->
+      <div class="og-card-wrap animate-fade-up delay-4">
+        <div class="og-card">
+          <div class="og-card-orb og-card-orb-1"></div>
+          <div class="og-card-orb og-card-orb-2"></div>
+
+          <div class="og-card-dots">
+            <span></span><span></span><span></span>
+          </div>
+
+          <div class="og-card-header">
+            <div class="og-card-favicon">S</div>
+            <span class="og-card-site">snapog.dev</span>
+          </div>
+
+          <div class="og-card-body">
+            <div class="og-card-title">Hello World — My Amazing Blog Post</div>
+            <div class="og-card-desc">Powered by SnapOG API</div>
+          </div>
+
+          <div class="og-card-footer">
+            <span class="og-card-tag">og:image</span>
+            <span class="og-card-dim">1200 × 630</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="how-header">
+        <div class="section-label animate-fade-up">How it works</div>
+        <h2 class="section-title animate-fade-up delay-1">Three steps to beautiful previews</h2>
+      </div>
+
+      <div class="how-steps">
+        <!-- Step 1 -->
+        <div class="how-step animate-fade-up delay-1">
+          <div class="step-arrow"></div>
+          <div class="how-step-num">01</div>
+          <div class="how-step-title">Make an API call</div>
+          <p class="how-step-desc">Pass your title, description, and optional template as query params.</p>
+          <div class="how-step-code">GET /og?title=My+Post&amp;key=sk_xxx</div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="how-step animate-fade-up delay-2">
+          <div class="step-arrow"></div>
+          <div class="how-step-num">02</div>
+          <div class="how-step-title">Renders at the edge</div>
+          <p class="how-step-desc">SnapOG processes on Cloudflare Workers — sub-100ms, globally distributed.</p>
+          <div class="how-step-code">← PNG 1200×630 (cached in R2)</div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="how-step animate-fade-up delay-3">
+          <div class="how-step-num">03</div>
+          <div class="how-step-title">Serve as og:image</div>
+          <p class="how-step-desc">Drop the URL into your HTML head. Twitter, LinkedIn, Slack — everywhere reads it perfectly.</p>
+          <div class="how-step-code">&lt;meta property="og:image" content="..." /&gt;</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CODE EXAMPLE ── -->
+  <section class="code-section">
+    <div class="container">
+      <div class="code-copy">
+        <div class="section-label animate-fade-up">Integration</div>
+        <h2 class="section-title animate-fade-up delay-1">Add to your&nbsp;&lt;head&gt;<br />in 30 seconds</h2>
+        <p class="animate-fade-up delay-2">
+          Two meta tags. No SDK, no build step, no dependencies.
+          Paste the URL, ship your post, watch the preview render flawlessly on every platform.
+        </p>
+      </div>
+
+      <div class="code-block-wrap animate-fade-up delay-2">
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-header-dot"></div>
+            <div class="code-block-header-dot"></div>
+            <div class="code-block-header-dot"></div>
+          </div>
+          <pre><code><span class="tok-cmt">&lt;!-- Add to your &lt;head&gt; --&gt;</span>
+
+<span class="tok-tag">&lt;meta</span> <span class="tok-attr">property</span>=<span class="tok-val">"og:image"</span>
+  <span class="tok-attr">content</span>=<span class="tok-val">"</span><span class="tok-accent">https://snapog.dev/og</span><span class="tok-val">?</span><span class="tok-coral">title</span>=<span class="tok-hi">My+Post</span><span class="tok-val">&amp;key=sk_xxx</span><span class="tok-val">"</span> <span class="tok-tag">/&gt;</span>
+
+<span class="tok-tag">&lt;meta</span> <span class="tok-attr">name</span>=<span class="tok-val">"twitter:image"</span>
+  <span class="tok-attr">content</span>=<span class="tok-val">"</span><span class="tok-accent">https://snapog.dev/og</span><span class="tok-val">?</span><span class="tok-coral">title</span>=<span class="tok-hi">My+Post</span><span class="tok-val">&amp;key=sk_xxx</span><span class="tok-val">"</span> <span class="tok-tag">/&gt;</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section class="features">
+    <div class="container">
+      <div class="features-header">
+        <div class="section-label animate-fade-up">Why SnapOG</div>
+        <h2 class="section-title animate-fade-up delay-1">Built for speed. Designed for beauty.</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card animate-fade-up delay-1">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">Edge Performance</div>
+          <p class="feature-desc">Generated at Cloudflare's global edge network. Sub-100ms response times regardless of where your users are.</p>
+        </div>
+
+        <div class="feature-card animate-fade-up delay-2">
+          <div class="feature-icon">💾</div>
+          <div class="feature-title">R2 Cache</div>
+          <p class="feature-desc">Identical requests are served directly from Cloudflare R2. Zero compute cost on cache hits — scales to millions.</p>
+        </div>
+
+        <div class="feature-card animate-fade-up delay-3">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-title">Templates</div>
+          <p class="feature-desc">Default, blog, and article templates ship today. Custom branded templates coming — bring your own design system.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRICING ── -->
+  <section class="pricing">
+    <div class="container">
+      <div class="pricing-header">
+        <div class="section-label animate-fade-up">Pricing</div>
+        <h2 class="section-title animate-fade-up delay-1">Simple, honest pricing</h2>
+        <p class="animate-fade-up delay-2">No surprises. No seat licenses. Pay for what you generate.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Free -->
+        <div class="price-card animate-fade-up delay-1">
+          <div class="price-tier">Free</div>
+          <div class="price-amount">$0</div>
+          <div class="price-period">forever</div>
+          <div class="price-divider"></div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span><strong>100 images</strong> / month</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>All default templates</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>R2 edge caching</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Community support</span>
+          </div>
+          <a
+            href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+"
+            target="_blank" rel="noopener"
+            class="btn btn-ghost price-cta"
+          >
+            Get Free Key
+          </a>
+        </div>
+
+        <!-- Pro -->
+        <div class="price-card popular animate-fade-up delay-2">
+          <div class="popular-badge">Most Popular</div>
+          <div class="price-tier">Pro</div>
+          <div class="price-amount"><sup>$</sup>19</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span><strong>10,000 images</strong> / month</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>All templates</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Priority edge caching</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Email support</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Analytics dashboard</span>
+          </div>
+          <a
+            href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+"
+            target="_blank" rel="noopener"
+            class="btn btn-accent price-cta"
+          >
+            Join Waitlist
+          </a>
+        </div>
+
+        <!-- Business -->
+        <div class="price-card animate-fade-up delay-3">
+          <div class="price-tier">Business</div>
+          <div class="price-amount"><sup>$</sup>79</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span><strong>100,000 images</strong> / month</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Custom templates</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>SLA guarantees</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Dedicated support</span>
+          </div>
+          <div class="price-feature">
+            <span class="check">✓</span>
+            <span>Custom domain</span>
+          </div>
+          <a
+            href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+"
+            target="_blank" rel="noopener"
+            class="btn btn-outline-accent price-cta"
+          >
+            Join Waitlist
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA BANNER ── -->
+  <section class="cta-banner">
+    <div class="container">
+      <div class="cta-inner">
+        <div class="section-label">Ship faster</div>
+        <h2 class="section-title">Ready to ship better<br />social previews?</h2>
+        <p class="cta-subtitle">Join the early access waitlist. We onboard in batches — your spot is one GitHub issue away.</p>
+        <div class="cta-btn-wrap">
+          <a
+            href="https://github.com/Valere3162/snapog/issues/new?title=Early+Access+Request&labels=waitlist&body=**Use+case:**+%0A%0A**Current+setup:**+%0A%0A**Expected+volume:**+"
+            target="_blank" rel="noopener"
+            class="btn btn-accent btn-lg"
+          >
+            Get Early Access on GitHub →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo">Snap<span>OG</span></div>
+      <div class="footer-copy">Built by Auto Company · © 2026</div>
+      <div class="footer-links">
+        <a href="https://github.com/Valere3162/snapog" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/Valere3162/snapog/issues" target="_blank" rel="noopener">Issues</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── JS: Sticky nav + scroll reveal ── -->
+  <script>
+    // Sticky nav glass effect on scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    // Intersection Observer for scroll-triggered fade-up
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    // All elements with animate-fade-up that are NOT in the hero
+    // (hero animates on load; below-fold elements pause until visible)
+    document.querySelectorAll('.how-it-works .animate-fade-up, .code-section .animate-fade-up, .features .animate-fade-up, .pricing .animate-fade-up, .cta-banner .animate-fade-up').forEach(el => {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+  </script>
+
+</body>
+</html>
