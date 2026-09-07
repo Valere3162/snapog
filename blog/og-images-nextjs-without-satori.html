@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic OG Images in Next.js Without Writing Satori JSX | SnapOG Blog</title>
+  <meta name="description" content="Skip the Satori pain points. Learn how to generate dynamic Open Graph images in Next.js using a simple URL-params API — no JSX, no font loading, no edge runtime conflicts." />
+  <meta name="keywords" content="dynamic og images nextjs, generate og image without satori nextjs, og image api, vercel og image alternative" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Dynamic OG Images in Next.js Without Writing Satori JSX" />
+  <meta property="og:description" content="Skip the Satori pain points. Learn how to generate dynamic OG images in Next.js using a simple URL-params API — no JSX, no font loading, no edge runtime conflicts." />
+  <meta property="og:url" content="https://snapog.dev/blog/og-images-nextjs-without-satori" />
+  <meta property="og:image" content="https://api.snapog.dev/og?title=Dynamic+OG+Images+in+Next.js+Without+Satori&subtitle=SnapOG+Blog&theme=dark" />
+  <meta property="og:site_name" content="SnapOG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Dynamic OG Images in Next.js Without Writing Satori JSX" />
+  <meta name="twitter:description" content="Skip the Satori pain points. Generate dynamic OG images with a URL param API instead." />
+  <meta name="twitter:image" content="https://api.snapog.dev/og?title=Dynamic+OG+Images+in+Next.js+Without+Satori&subtitle=SnapOG+Blog&theme=dark" />
+
+  <!-- Schema.org Article JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Dynamic OG Images in Next.js Without Writing Satori JSX",
+    "description": "Skip the Satori pain points. Learn how to generate dynamic Open Graph images in Next.js using a simple URL-params API.",
+    "author": {
+      "@type": "Person",
+      "name": "Alok"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "SnapOG",
+      "url": "https://snapog.dev"
+    },
+    "datePublished": "2026-09-07",
+    "dateModified": "2026-09-07",
+    "url": "https://snapog.dev/blog/og-images-nextjs-without-satori",
+    "image": "https://api.snapog.dev/og?title=Dynamic+OG+Images+in+Next.js+Without+Satori&subtitle=SnapOG+Blog&theme=dark",
+    "keywords": ["dynamic og images nextjs", "generate og image without satori nextjs", "og image api", "vercel og image alternative"]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070F;
+      color: #EEEEF5;
+      font-family: 'Mulish', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,7,15,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #EEEEF5;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: #C8FF00; }
+
+    .nav-sep {
+      color: #2A2A3D;
+      font-size: 20px;
+      user-select: none;
+    }
+
+    .nav-crumb {
+      color: #A0A0B8;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .nav-crumb:hover { color: #EEEEF5; }
+
+    .nav-spacer { flex: 1; }
+
+    .nav-cta {
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* ARTICLE LAYOUT */
+    .article-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 64px 24px 120px;
+    }
+
+    /* HEADER */
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .tag {
+      background: rgba(200,255,0,0.1);
+      color: #C8FF00;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(200,255,0,0.2);
+    }
+
+    .article-date {
+      color: #5A5A72;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: #EEEEF5;
+      margin-bottom: 20px;
+    }
+
+    .article-subtitle {
+      font-size: 18px;
+      color: #A0A0B8;
+      line-height: 1.65;
+      margin-bottom: 40px;
+      border-bottom: 1px solid #1E1E2D;
+      padding-bottom: 40px;
+    }
+
+    /* BODY TEXT */
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: #EEEEF5;
+      margin: 52px 0 16px;
+      letter-spacing: -0.4px;
+    }
+
+    h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #EEEEF5;
+      margin: 36px 0 12px;
+    }
+
+    p { margin-bottom: 18px; color: #A0A0B8; }
+    p strong { color: #EEEEF5; font-weight: 600; }
+
+    a { color: #C8FF00; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: #0D0D1A;
+      border: 1px solid #1E1E2D;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+      font-size: 13.5px;
+    }
+
+    .code-label {
+      background: #10101E;
+      border-bottom: 1px solid #1E1E2D;
+      padding: 8px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #5A5A72;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      padding: 20px 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.65;
+      white-space: pre;
+    }
+
+    /* syntax tokens */
+    .kw  { color: #C8FF00; }
+    .str { color: #FFB347; }
+    .cm  { color: #5A5A72; font-style: italic; }
+    .fn  { color: #79C0FF; }
+    .tag { color: #7EE787; }
+    .attr{ color: #FF7B72; }
+    .num { color: #FF79C6; }
+    .typ { color: #FFA657; }
+    .var { color: #EEEEF5; }
+
+    /* inline code */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #10101E;
+      border: 1px solid #1E1E2D;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: #C8FF00;
+    }
+
+    /* CALLOUTS */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      border-left: 3px solid;
+    }
+
+    .callout-warn {
+      background: rgba(255,77,109,0.08);
+      border-color: #FF4D6D;
+    }
+
+    .callout-tip {
+      background: rgba(200,255,0,0.06);
+      border-color: #C8FF00;
+    }
+
+    .callout-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .callout-warn .callout-label { color: #FF4D6D; }
+    .callout-tip .callout-label  { color: #C8FF00; }
+    .callout p { margin: 0; font-size: 15px; }
+    .callout-warn p { color: #EEEEF5; }
+    .callout-tip p  { color: #EEEEF5; }
+
+    /* COMPARISON TABLE */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 28px 0;
+      border-radius: 10px;
+      border: 1px solid #1E1E2D;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0D0D1A;
+      font-size: 14px;
+    }
+
+    thead th {
+      background: #10101E;
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: #EEEEF5;
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #1E1E2D;
+      color: #A0A0B8;
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #10101E; }
+
+    tbody td:first-child {
+      color: #EEEEF5;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .ok  { color: #C8FF00; font-weight: 600; }
+    .bad { color: #FF4D6D; font-weight: 600; }
+    .mid { color: #FFB347; font-weight: 600; }
+
+    /* STEP MARKERS */
+    .step {
+      display: flex;
+      gap: 16px;
+      margin: 32px 0 8px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    .step-content h3 { margin-top: 0; }
+
+    /* URL DISPLAY */
+    .url-box {
+      background: #0D0D1A;
+      border: 1px solid #2A2A3D;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #C8FF00;
+      word-break: break-all;
+    }
+
+    /* BULLET LIST */
+    ul, ol {
+      margin: 16px 0 20px 24px;
+      color: #A0A0B8;
+    }
+
+    li { margin-bottom: 8px; }
+    li strong { color: #EEEEF5; }
+
+    /* CTA BOX */
+    .cta-box {
+      background: linear-gradient(135deg, rgba(200,255,0,0.07) 0%, rgba(200,255,0,0.03) 100%);
+      border: 1px solid rgba(200,255,0,0.2);
+      border-radius: 14px;
+      padding: 40px 36px;
+      margin: 60px 0 0;
+      text-align: center;
+    }
+
+    .cta-box h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+    }
+
+    .cta-box p {
+      color: #A0A0B8;
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); text-decoration: none; }
+
+    .cta-sub {
+      margin-top: 14px !important;
+      font-size: 13px !important;
+      color: #5A5A72 !important;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #1E1E2D;
+      margin: 48px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Snap<span>OG</span></a>
+    <span class="nav-sep">/</span>
+    <a href="/blog" class="nav-crumb">Blog</a>
+    <div class="nav-spacer"></div>
+    <a href="/#pricing" class="nav-cta">Start free &rarr;</a>
+  </div>
+</nav>
+
+<!-- ARTICLE -->
+<article class="article-wrap">
+
+  <div class="article-meta">
+    <span class="tag">Tutorial</span>
+    <span class="article-date">September 7, 2026 &middot; 8 min read</span>
+  </div>
+
+  <h1>Dynamic OG Images in Next.js Without Writing Satori JSX</h1>
+
+  <p class="article-subtitle">
+    Satori works, but it makes you pay for it. Font loading, CSS subset surprises, JSX for a static image,
+    edge runtime constraints — there is a simpler path. Here is the full tutorial.
+  </p>
+
+  <!-- SECTION 1 -->
+  <h2>The Satori Problem</h2>
+
+  <p>
+    <code>next/og</code> ships with Satori under the hood. The idea is elegant: write JSX, get a PNG.
+    In practice, four friction points slow you down before your first image renders.
+  </p>
+
+  <h3>1. Font loading on every request</h3>
+
+  <p>
+    Satori cannot read font files from disk — the edge runtime has no <code>fs</code> access.
+    So the recommended pattern is fetching your font as an <code>ArrayBuffer</code> on every request:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">app/api/og/route.tsx</div>
+    <pre><span class="kw">export const</span> <span class="var">runtime</span> = <span class="str">'edge'</span>
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">req</span>: <span class="typ">Request</span>) {
+  <span class="cm">// Fetched fresh on EVERY request — adds ~80-120ms cold</span>
+  <span class="kw">const</span> <span class="var">fontData</span> = <span class="kw">await</span> <span class="fn">fetch</span>(
+    <span class="kw">new</span> <span class="fn">URL</span>(<span class="str">'../../../assets/Inter-Bold.ttf'</span>, <span class="kw">import</span>.<span class="var">meta</span>.<span class="var">url</span>)
+  ).<span class="fn">then</span>((<span class="var">r</span>) =&gt; <span class="var">r</span>.<span class="fn">arrayBuffer</span>())
+
+  <span class="kw">return new</span> <span class="fn">ImageResponse</span>(
+    &lt;<span class="tag">div</span> <span class="attr">style</span>=<span class="str">{{ fontFamily: 'Inter' }}&gt;</span>...&lt;/<span class="tag">div</span>&gt;,
+    { <span class="var">fonts</span>: [{ <span class="var">name</span>: <span class="str">'Inter'</span>, <span class="var">data</span>: <span class="var">fontData</span>, <span class="var">weight</span>: <span class="num">700</span> }] }
+  )
+}</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">Warning</div>
+    <p>Even with Vercel Edge caching, the font fetch fires on cache misses and cold starts. Two custom fonts means two round trips before rendering begins.</p>
+  </div>
+
+  <h3>2. The CSS subset that bites you mid-project</h3>
+
+  <p>
+    Satori does not implement full CSS. It uses a custom layout engine. The unsupported properties
+    are not always obvious until you hit them in production:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">Things that silently fail or error in Satori</div>
+    <pre><span class="cm">// No CSS Grid — use flexbox only</span>
+<span class="var">style</span>=<span class="str">{{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}</span>  <span class="cm">// ignored</span>
+
+<span class="cm">// No mixed-unit calc()</span>
+<span class="var">style</span>=<span class="str">{{ width: 'calc(100% - 48px)' }}</span>  <span class="cm">// broken</span>
+
+<span class="cm">// No multiline text-overflow</span>
+<span class="var">style</span>=<span class="str">{{ display: '-webkit-box', WebkitLineClamp: 3 }}</span>  <span class="cm">// ignored</span>
+
+<span class="cm">// No background-clip: text</span>
+<span class="var">style</span>=<span class="str">{{ backgroundClip: 'text', WebkitBackgroundClip: 'text' }}</span>  <span class="cm">// noop</span></pre>
+  </div>
+
+  <h3>3. JSX for a static image is the wrong abstraction</h3>
+
+  <p>
+    A 1200x630 PNG has no state. It does not re-render. It never handles a click event.
+    Writing it as a React component — with camelCase inline styles, JSX fragments, and
+    <code>import.meta.url</code> tricks — is cognitive overhead solving a problem that does not need React:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">The boilerplate you write before any actual design work</div>
+    <pre><span class="kw">import</span> { <span class="fn">ImageResponse</span> } <span class="kw">from</span> <span class="str">'next/og'</span>
+
+<span class="kw">export const</span> <span class="var">runtime</span> = <span class="str">'edge'</span>
+<span class="kw">export const</span> <span class="var">contentType</span> = <span class="str">'image/png'</span>
+<span class="kw">export const</span> <span class="var">size</span> = { <span class="var">width</span>: <span class="num">1200</span>, <span class="var">height</span>: <span class="num">630</span> }
+
+<span class="kw">export default async function</span> <span class="fn">Image</span>({ <span class="var">params</span> }: { <span class="var">params</span>: { <span class="var">slug</span>: <span class="typ">string</span> } }) {
+  <span class="kw">const</span> <span class="var">post</span> = <span class="kw">await</span> <span class="fn">getPost</span>(<span class="var">params</span>.<span class="var">slug</span>)  <span class="cm">// can't use Prisma here</span>
+  <span class="kw">const</span> <span class="var">font</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://...'</span>).<span class="fn">then</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="fn">arrayBuffer</span>())
+  <span class="kw">return new</span> <span class="fn">ImageResponse</span>(
+    &lt;<span class="tag">div</span> <span class="attr">style</span>=<span class="str">{{ display: 'flex', flexDirection: 'column', ... }}&gt;</span>
+      &lt;<span class="tag">h1</span> <span class="attr">style</span>=<span class="str">{{ fontSize: 48, fontWeight: 800, ... }}&gt;</span>{<span class="var">post</span>.<span class="var">title</span>}&lt;/<span class="tag">h1</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;,
+    { <span class="var">width</span>: <span class="num">1200</span>, <span class="var">height</span>: <span class="num">630</span>, <span class="var">fonts</span>: [{ <span class="var">name</span>: <span class="str">'Inter'</span>, <span class="var">data</span>: <span class="var">font</span> }] }
+  )
+}</pre>
+  </div>
+
+  <h3>4. Edge runtime conflicts with Node API routes</h3>
+
+  <p>
+    <code>next/og</code> requires <code>export const runtime = 'edge'</code>. But your data-fetching
+    API routes — the ones using Prisma, <code>fs</code>, or native Node modules — must run on the
+    Node runtime. You cannot mix runtimes in one route file. This forces you to split your OG image
+    into a separate route just to satisfy the runtime constraint, or proxy through a Node route,
+    or give up and use a third-party service anyway.
+  </p>
+
+  <hr />
+
+  <!-- SECTION 2 -->
+  <h2>The URL-Params Approach</h2>
+
+  <p>
+    Instead of rendering images in your own runtime, you call an API that already handles
+    rendering, caching, fonts, and CDN delivery. You pass parameters in the URL. You get a PNG back.
+  </p>
+
+  <p>A real SnapOG URL looks like this:</p>
+
+  <div class="url-box">https://api.snapog.dev/og?title=My+Post+Title&amp;subtitle=by+Alok&amp;theme=dark</div>
+
+  <p>
+    That returns a 1200&times;630 PNG. No font loading. No JSX. No edge runtime declaration.
+    Just a URL you drop into <code>&lt;meta property="og:image"&gt;</code>.
+  </p>
+
+  <div class="callout callout-tip">
+    <div class="callout-label">Tip</div>
+    <p>Open that URL in a browser tab right now. You will see your OG image rendered in under 20ms from the nearest edge node. That is the entire product.</p>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 3 -->
+  <h2>Step-by-Step Tutorial</h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <h3>Get your API key</h3>
+      <p>
+        Sign up at <a href="/#pricing">snapog.dev</a>. The free tier includes 500 renders per month —
+        enough to cover a personal blog or small project indefinitely. Your API key is a single string
+        you will use in Step 2.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <h3>Create <code>lib/og.ts</code></h3>
+      <p>
+        Build a typed utility that constructs the SnapOG URL from params. Keep it simple — it is just
+        a URL builder:
+      </p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">lib/og.ts</div>
+    <pre><span class="kw">const</span> <span class="var">SNAPOG_BASE</span> = <span class="str">'https://api.snapog.dev/og'</span>
+<span class="kw">const</span> <span class="var">API_KEY</span> = <span class="var">process</span>.<span class="var">env</span>.<span class="var">SNAPOG_API_KEY</span>!
+
+<span class="kw">interface</span> <span class="typ">OGParams</span> {
+  <span class="var">title</span>: <span class="typ">string</span>
+  <span class="var">subtitle</span>?: <span class="typ">string</span>
+  <span class="var">theme</span>?: <span class="str">'dark'</span> | <span class="str">'light'</span>
+  <span class="var">logo</span>?: <span class="typ">string</span>   <span class="cm">// URL to your logo image</span>
+  <span class="var">tag</span>?: <span class="typ">string</span>    <span class="cm">// top-left label e.g. "Tutorial"</span>
+}
+
+<span class="kw">export function</span> <span class="fn">ogUrl</span>(<span class="var">params</span>: <span class="typ">OGParams</span>): <span class="typ">string</span> {
+  <span class="kw">const</span> <span class="var">url</span> = <span class="kw">new</span> <span class="fn">URL</span>(<span class="var">SNAPOG_BASE</span>)
+  <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'key'</span>, <span class="var">API_KEY</span>)
+  <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'title'</span>, <span class="var">params</span>.<span class="var">title</span>)
+  <span class="kw">if</span> (<span class="var">params</span>.<span class="var">subtitle</span>) <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'subtitle'</span>, <span class="var">params</span>.<span class="var">subtitle</span>)
+  <span class="kw">if</span> (<span class="var">params</span>.<span class="var">theme</span>)    <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'theme'</span>, <span class="var">params</span>.<span class="var">theme</span>)
+  <span class="kw">if</span> (<span class="var">params</span>.<span class="var">logo</span>)     <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'logo'</span>, <span class="var">params</span>.<span class="var">logo</span>)
+  <span class="kw">if</span> (<span class="var">params</span>.<span class="var">tag</span>)      <span class="var">url</span>.<span class="var">searchParams</span>.<span class="fn">set</span>(<span class="str">'tag'</span>, <span class="var">params</span>.<span class="var">tag</span>)
+  <span class="kw">return</span> <span class="var">url</span>.<span class="fn">toString</span>()
+}</pre>
+  </div>
+
+  <p>Add your key to <code>.env.local</code>: <code>SNAPOG_API_KEY=sk_live_xxxx</code></p>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <h3>Use in <code>generateMetadata</code> (App Router)</h3>
+      <p>
+        Call <code>ogUrl()</code> inside your <code>generateMetadata</code> export. No API route needed.
+        No edge runtime. No font fetching:
+      </p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">app/blog/[slug]/page.tsx</div>
+    <pre><span class="kw">import</span> { <span class="fn">ogUrl</span> } <span class="kw">from</span> <span class="str">'@/lib/og'</span>
+<span class="kw">import</span> { <span class="fn">getPost</span> } <span class="kw">from</span> <span class="str">'@/lib/db'</span>  <span class="cm">// Prisma, fs, anything — Node runtime</span>
+<span class="kw">import</span> <span class="kw">type</span> { <span class="typ">Metadata</span> } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">export async function</span> <span class="fn">generateMetadata</span>(
+  { <span class="var">params</span> }: { <span class="var">params</span>: { <span class="var">slug</span>: <span class="typ">string</span> } }
+): <span class="typ">Promise</span>&lt;<span class="typ">Metadata</span>&gt; {
+  <span class="kw">const</span> <span class="var">post</span> = <span class="kw">await</span> <span class="fn">getPost</span>(<span class="var">params</span>.<span class="var">slug</span>)
+
+  <span class="kw">return</span> {
+    <span class="var">title</span>: <span class="var">post</span>.<span class="var">title</span>,
+    <span class="var">openGraph</span>: {
+      <span class="var">images</span>: [
+        {
+          <span class="var">url</span>: <span class="fn">ogUrl</span>({
+            <span class="var">title</span>: <span class="var">post</span>.<span class="var">title</span>,
+            <span class="var">subtitle</span>: <span class="str">`by </span>${<span class="var">post</span>.<span class="var">author</span>} · ${<span class="var">post</span>.<span class="var">readTime</span>}<span class="str"> min read`</span>,
+            <span class="var">theme</span>: <span class="str">'dark'</span>,
+            <span class="var">tag</span>: <span class="var">post</span>.<span class="var">category</span>,
+          }),
+          <span class="var">width</span>: <span class="num">1200</span>,
+          <span class="var">height</span>: <span class="num">630</span>,
+          <span class="var">alt</span>: <span class="var">post</span>.<span class="var">title</span>,
+        },
+      ],
+    },
+    <span class="var">twitter</span>: { <span class="var">card</span>: <span class="str">'summary_large_image'</span> },
+  }
+}</pre>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <h3>Verify it works</h3>
+      <p>
+        Copy the generated URL from your browser DevTools (inspect the <code>og:image</code> meta tag).
+        Paste it directly into a new browser tab — you should see the 1200&times;630 PNG.
+        Then validate the full card at <a href="https://cards-dev.twitter.com/validator" target="_blank" rel="noopener">Twitter Card Validator</a> and
+        <a href="https://developers.facebook.com/tools/debug/" target="_blank" rel="noopener">Facebook Debugger</a>.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 4 -->
+  <h2>Dynamic OG for Different Page Types</h2>
+
+  <p>
+    The same <code>ogUrl()</code> utility handles every page type. Different params, different image:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">lib/og-presets.ts — four patterns in one file</div>
+    <pre><span class="kw">import</span> { <span class="fn">ogUrl</span> } <span class="kw">from</span> <span class="str">'./og'</span>
+
+<span class="cm">// Blog post</span>
+<span class="kw">export const</span> <span class="fn">blogOG</span> = (<span class="var">title</span>: <span class="typ">string</span>, <span class="var">author</span>: <span class="typ">string</span>, <span class="var">category</span>: <span class="typ">string</span>) =&gt;
+  <span class="fn">ogUrl</span>({ <span class="var">title</span>, <span class="var">subtitle</span>: <span class="str">`by </span>${<span class="var">author</span>}<span class="str">`</span>, <span class="var">tag</span>: <span class="var">category</span>, <span class="var">theme</span>: <span class="str">'dark'</span> })
+
+<span class="cm">// Product / e-commerce page</span>
+<span class="kw">export const</span> <span class="fn">productOG</span> = (<span class="var">name</span>: <span class="typ">string</span>, <span class="var">price</span>: <span class="typ">string</span>, <span class="var">logoUrl</span>: <span class="typ">string</span>) =&gt;
+  <span class="fn">ogUrl</span>({ <span class="var">title</span>: <span class="var">name</span>, <span class="var">subtitle</span>: <span class="str">`Starting at </span>${<span class="var">price</span>}<span class="str">`</span>, <span class="var">logo</span>: <span class="var">logoUrl</span>, <span class="var">theme</span>: <span class="str">'light'</span> })
+
+<span class="cm">// User profile page</span>
+<span class="kw">export const</span> <span class="fn">profileOG</span> = (<span class="var">displayName</span>: <span class="typ">string</span>, <span class="var">bio</span>: <span class="typ">string</span>, <span class="var">avatar</span>: <span class="typ">string</span>) =&gt;
+  <span class="fn">ogUrl</span>({ <span class="var">title</span>: <span class="var">displayName</span>, <span class="var">subtitle</span>: <span class="var">bio</span>, <span class="var">logo</span>: <span class="var">avatar</span>, <span class="var">theme</span>: <span class="str">'dark'</span> })
+
+<span class="cm">// Docs / reference page</span>
+<span class="kw">export const</span> <span class="fn">docsOG</span> = (<span class="var">pageTitle</span>: <span class="typ">string</span>, <span class="var">section</span>: <span class="typ">string</span>) =&gt;
+  <span class="fn">ogUrl</span>({ <span class="var">title</span>: <span class="var">pageTitle</span>, <span class="var">subtitle</span>: <span class="var">section</span>, <span class="var">tag</span>: <span class="str">'Docs'</span>, <span class="var">theme</span>: <span class="str">'dark'</span> })</pre>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 5 -->
+  <h2>Satori vs SnapOG — Honest Comparison</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Axis</th>
+          <th>Satori / next/og</th>
+          <th>SnapOG URL API</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Custom design control</td>
+          <td><span class="ok">Full</span> — pixel-perfect JSX</td>
+          <td><span class="mid">Themes</span> — logo, colors, layout variants</td>
+        </tr>
+        <tr>
+          <td>Setup time</td>
+          <td><span class="bad">30-90 min</span> fonts, JSX, runtime config</td>
+          <td><span class="ok">5 min</span> API key + one utility file</td>
+        </tr>
+        <tr>
+          <td>CSS support</td>
+          <td><span class="bad">Partial</span> — no grid, no calc(), no clip</td>
+          <td><span class="ok">Full</span> — rendered in real Chrome</td>
+        </tr>
+        <tr>
+          <td>Edge runtime required</td>
+          <td><span class="bad">Yes</span> — blocks Node-only dependencies</td>
+          <td><span class="ok">No</span> — just a URL string, any runtime</td>
+        </tr>
+        <tr>
+          <td>Font management</td>
+          <td><span class="bad">Manual</span> — fetch ArrayBuffer per request</td>
+          <td><span class="ok">Handled</span> — Google Fonts built in</td>
+        </tr>
+        <tr>
+          <td>Iteration speed</td>
+          <td><span class="bad">Slow</span> — change JSX, redeploy, test</td>
+          <td><span class="ok">Instant</span> — edit URL params in browser</td>
+        </tr>
+        <tr>
+          <td>Self-hosted</td>
+          <td><span class="ok">Yes</span> — runs in your Vercel project</td>
+          <td><span class="bad">No</span> — external dependency</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    The verdict: if you need a fully bespoke image that matches your exact brand system pixel-for-pixel,
+    Satori is the right tool. For the other 90% of apps — blogs, SaaS dashboards, docs sites, marketplaces
+    — you are spending an afternoon solving a problem that should take five minutes.
+  </p>
+
+  <hr />
+
+  <!-- SECTION 6 -->
+  <h2>Pages Router Pattern</h2>
+
+  <p>
+    Nothing changes conceptually. Build the URL, put it in the <code>Head</code> component:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">pages/blog/[slug].tsx — Pages Router</div>
+    <pre><span class="kw">import</span> <span class="fn">Head</span> <span class="kw">from</span> <span class="str">'next/head'</span>
+<span class="kw">import</span> { <span class="fn">ogUrl</span> } <span class="kw">from</span> <span class="str">'@/lib/og'</span>
+<span class="kw">import</span> { <span class="fn">getPost</span> } <span class="kw">from</span> <span class="str">'@/lib/db'</span>
+<span class="kw">import type</span> { <span class="typ">GetServerSideProps</span> } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">export const</span> <span class="var">getServerSideProps</span>: <span class="typ">GetServerSideProps</span> = <span class="kw">async</span> ({ <span class="var">params</span> }) =&gt; {
+  <span class="kw">const</span> <span class="var">post</span> = <span class="kw">await</span> <span class="fn">getPost</span>(<span class="var">params</span>?.<span class="var">slug</span> <span class="kw">as</span> <span class="typ">string</span>)
+  <span class="kw">return</span> { <span class="var">props</span>: { <span class="var">post</span> } }
+}
+
+<span class="kw">export default function</span> <span class="fn">BlogPost</span>({ <span class="var">post</span> }) {
+  <span class="kw">const</span> <span class="var">imageUrl</span> = <span class="fn">ogUrl</span>({ <span class="var">title</span>: <span class="var">post</span>.<span class="var">title</span>, <span class="var">subtitle</span>: <span class="var">post</span>.<span class="var">author</span>, <span class="var">theme</span>: <span class="str">'dark'</span> })
+
+  <span class="kw">return</span> (
+    &lt;&gt;
+      &lt;<span class="tag">Head</span>&gt;
+        &lt;<span class="tag">meta</span> <span class="attr">property</span>=<span class="str">"og:image"</span> <span class="attr">content</span>={<span class="var">imageUrl</span>} /&gt;
+        &lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"twitter:card"</span> <span class="attr">content</span>=<span class="str">"summary_large_image"</span> /&gt;
+        &lt;<span class="tag">meta</span> <span class="attr">name</span>=<span class="str">"twitter:image"</span> <span class="attr">content</span>={<span class="var">imageUrl</span>} /&gt;
+      &lt;/<span class="tag">Head</span>&gt;
+      <span class="cm">{/* page content */}</span>
+    &lt;/&gt;
+  )
+}</pre>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 7 -->
+  <h2>Performance</h2>
+
+  <div class="callout callout-tip">
+    <div class="callout-label">Performance note</div>
+    <p>
+      SnapOG renders each unique URL once and caches the PNG at the CDN edge. Subsequent requests
+      for the same URL are served in under 20ms globally — faster than most self-hosted Satori
+      setups which render on every cold start. Cache-Control headers set a 30-day TTL.
+      Crawlers never wait on your server.
+    </p>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 8 -->
+  <h2>Summary</h2>
+
+  <ul>
+    <li><strong>No new API route needed.</strong> The OG URL is built at the <code>generateMetadata</code> level — it is just a string computed server-side, never a separate endpoint you have to maintain.</li>
+    <li><strong>No runtime constraints.</strong> You can use Prisma, <code>fs</code>, Redis, or any Node-only library in the same route file. The OG image is decoupled.</li>
+    <li><strong>No font management.</strong> Fonts are pre-loaded on SnapOG's infrastructure. You pick a theme, it handles typography.</li>
+    <li><strong>Iteration is instant.</strong> Changing the OG image means changing a string. Test it by pasting the URL in a browser tab. No redeploy, no rebuild, no waiting.</li>
+  </ul>
+
+  <hr />
+
+  <!-- RELATED POSTS -->
+  <div style="margin: 56px 0 0; padding: 32px; background: #10101E; border: 1px solid #26263A; border-radius: 14px;">
+    <h3 style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #EEEEF5; margin-bottom: 20px;">Related articles</h3>
+    <ul style="list-style: none; margin: 0; padding: 0;">
+      <li style="margin-bottom: 12px;"><a href="./social-preview-images-url-trick.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">The Laziest Way to Generate Social Preview Images (A URL Trick)</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; One URL parameter, works with any stack</span></li>
+      <li style="margin-bottom: 12px;"><a href="./og-images-static-html-site.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">How to Add OG Images to Any Static HTML Site</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; No build step, no framework required</span></li>
+      <li style="margin-bottom: 12px;"><a href="./what-is-open-graph.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">Open Graph Images Explained: What They Are, Sizes &amp; How to Generate Them</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; OG protocol, image dimensions, platform behavior</span></li>
+      <li style="margin-bottom: 12px;"><a href="./slack-link-preview-fix.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">Why Your Links Look Bad in Slack (And How to Fix It)</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; Slack unfurl requirements and troubleshooting</span></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>Add OG images to your Next.js app in 5 minutes</h2>
+    <p>Free tier includes 500 renders per month. No credit card required to start.</p>
+    <a href="/#pricing" class="cta-btn">Get your free API key &rarr;</a>
+    <p class="cta-sub">500 renders/month free &middot; No card required &middot; Cancel anytime</p>
+  </div>
+
+</article>
+
+</body>
+</html>

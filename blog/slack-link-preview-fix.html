@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why Your Links Look Bad in Slack (And How to Fix It) | SnapOG Blog</title>
+  <meta name="description" content="Slack link previews show text-only when your OG image is missing or the wrong size. Here's exactly what Slack requires and how to fix it in seconds." />
+  <meta name="keywords" content="slack link preview, slack unfurl image, slack og image, fix slack link preview, slack open graph, slack link image not showing" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Your Links Look Bad in Slack (And How to Fix It)" />
+  <meta property="og:description" content="Slack link previews show text-only when your OG image is missing or wrong size. Here's what Slack requires and how to fix it." />
+  <meta property="og:url" content="https://snapog.dev/blog/slack-link-preview-fix" />
+  <meta property="og:image" content="https://api.snapog.dev/og?title=Why+Your+Links+Look+Bad+in+Slack&subtitle=SnapOG+Blog&theme=dark" />
+  <meta property="og:site_name" content="SnapOG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why Your Links Look Bad in Slack (And How to Fix It)" />
+  <meta name="twitter:description" content="Fix Slack link previews — what OG images Slack actually requires, why yours is missing, and how to generate them." />
+  <meta name="twitter:image" content="https://api.snapog.dev/og?title=Why+Your+Links+Look+Bad+in+Slack&subtitle=SnapOG+Blog&theme=dark" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Why Your Links Look Bad in Slack (And How to Fix It)",
+    "description": "Slack link previews show text-only when your OG image is missing or the wrong size. Here's what Slack requires, how to test it, and how to generate compliant OG images.",
+    "author": { "@type": "Person", "name": "Alok" },
+    "publisher": { "@type": "Organization", "name": "SnapOG", "url": "https://snapog.dev" },
+    "datePublished": "2026-09-07",
+    "dateModified": "2026-09-07",
+    "url": "https://snapog.dev/blog/slack-link-preview-fix",
+    "image": "https://api.snapog.dev/og?title=Why+Your+Links+Look+Bad+in+Slack&subtitle=SnapOG+Blog&theme=dark",
+    "keywords": ["slack link preview", "slack unfurl image", "slack og image", "fix slack link preview"]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070F;
+      color: #EEEEF5;
+      font-family: 'Mulish', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,7,15,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .nav-inner {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px;
+      color: #EEEEF5; text-decoration: none; letter-spacing: -0.5px;
+    }
+    .nav-logo span { color: #C8FF00; }
+    .nav-sep { color: #2A2A3D; font-size: 20px; user-select: none; }
+    .nav-link { color: #A0A0B8; font-size: 14px; font-weight: 500; text-decoration: none; transition: color 0.15s; }
+    .nav-link:hover { color: #EEEEF5; }
+    .nav-spacer { flex: 1; }
+    .nav-cta {
+      background: #C8FF00; color: #07070F;
+      font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 13px;
+      padding: 7px 16px; border-radius: 6px; text-decoration: none;
+      white-space: nowrap; transition: opacity 0.15s;
+    }
+    .nav-cta:hover { opacity: 0.88; }
+
+    .article-wrap {
+      position: relative; z-index: 1;
+      max-width: 720px; margin: 0 auto;
+      padding: 56px 24px 120px;
+    }
+
+    .breadcrumb {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 32px; font-size: 13px; color: #5A5A72;
+    }
+    .breadcrumb a { color: #A0A0B8; text-decoration: none; transition: color 0.15s; }
+    .breadcrumb a:hover { color: #EEEEF5; }
+
+    .post-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(200,255,0,0.1); color: #C8FF00;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 4px;
+      border: 1px solid rgba(200,255,0,0.2);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.12; letter-spacing: -1.5px;
+      color: #EEEEF5; margin-bottom: 16px;
+    }
+
+    .post-subtitle {
+      font-size: 18px; color: #A0A0B8; line-height: 1.65;
+      margin-bottom: 28px;
+    }
+
+    .post-meta {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 13px; color: #5A5A72;
+      font-family: 'JetBrains Mono', monospace;
+      padding-bottom: 36px; margin-bottom: 40px;
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .prose p { margin-bottom: 22px; color: #A0A0B8; }
+    .prose p:first-child { color: #EEEEF5; font-size: 18px; line-height: 1.7; }
+
+    .prose h2 {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: clamp(22px, 3.5vw, 28px);
+      color: #EEEEF5; margin: 48px 0 16px; letter-spacing: -0.5px;
+    }
+    .prose h3 {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 19px; color: #EEEEF5; margin: 32px 0 12px;
+    }
+
+    .prose ul, .prose ol { margin: 0 0 22px 24px; color: #A0A0B8; }
+    .prose li { margin-bottom: 8px; }
+    .prose li::marker { color: #C8FF00; }
+    .prose a { color: #C8FF00; text-decoration: underline; text-underline-offset: 3px; }
+    .prose strong { color: #EEEEF5; font-weight: 600; }
+
+    .code-block {
+      background: #10101E; border: 1px solid #2A2A3D;
+      border-radius: 10px; padding: 20px 22px;
+      margin: 4px 0 28px; overflow-x: auto;
+    }
+    .code-block pre {
+      font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.65;
+      color: #C0C8D8; white-space: pre;
+    }
+    .code-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+      color: #C8FF00; letter-spacing: 0.05em; margin-bottom: 10px;
+    }
+    code {
+      background: rgba(200,255,0,0.1); color: #C8FF00;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.87em;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+    .callout-tip {
+      background: rgba(200,255,0,0.06);
+      border: 1px solid rgba(200,255,0,0.2);
+      border-left: 3px solid #C8FF00;
+      border-radius: 10px; padding: 18px 20px; margin: 0 0 28px;
+    }
+    .callout-tip .callout-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #C8FF00; margin-bottom: 8px;
+    }
+    .callout-tip p { color: #A0A0B8; margin: 0; font-size: 15px; }
+
+    .callout-warn {
+      background: rgba(255,184,0,0.06);
+      border: 1px solid rgba(255,184,0,0.2);
+      border-left: 3px solid #FFB800;
+      border-radius: 10px; padding: 16px 20px; margin: 0 0 28px;
+      color: #A0A0B8; font-size: 15px;
+    }
+    .callout-warn strong { color: #FFB800; }
+
+    .url-box {
+      background: #0D0D1A; border: 1px solid #2A2A3D;
+      border-radius: 8px; padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      color: #C0C8D8; word-break: break-all; margin: 0 0 28px;
+    }
+    .url-box .url-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #C8FF00; margin-bottom: 8px;
+    }
+
+    .checklist {
+      list-style: none; margin: 0 0 28px; padding: 0;
+    }
+    .checklist-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 0; border-bottom: 1px solid #1E1E2D;
+    }
+    .checklist-item:last-child { border-bottom: none; }
+    .check-icon {
+      flex-shrink: 0; width: 22px; height: 22px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; margin-top: 2px;
+    }
+    .check-icon.pass { background: rgba(61,186,106,0.15); color: #3DBA6A; }
+    .check-icon.fail { background: rgba(224,82,82,0.15); color: #E05252; }
+    .checklist-item p { color: #A0A0B8; font-size: 15px; margin: 0; }
+    .checklist-item strong { color: #EEEEF5; }
+
+    .comparison {
+      width: 100%; border-collapse: collapse;
+      margin: 8px 0 32px; font-size: 14px;
+    }
+    .comparison th {
+      background: #10101E; color: #A0A0B8;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 10px 14px; border: 1px solid #1E1E2D; text-align: left;
+    }
+    .comparison td {
+      padding: 11px 14px; border: 1px solid #1E1E2D;
+      color: #A0A0B8; vertical-align: top;
+    }
+    .comparison tr:hover td { background: #10101E; }
+    .ok { color: #3DBA6A; }
+    .bad { color: #E05252; }
+    .mid { color: #E8C448; }
+
+    .cta-box {
+      background: linear-gradient(135deg, rgba(200,255,0,0.08) 0%, rgba(200,255,0,0.03) 100%);
+      border: 1px solid rgba(200,255,0,0.2);
+      border-radius: 18px; padding: 40px 36px;
+      text-align: center; margin-top: 56px;
+    }
+    .cta-box h2 {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 26px; color: #EEEEF5;
+      margin-bottom: 12px; letter-spacing: -0.5px;
+    }
+    .cta-box p { color: #A0A0B8; margin-bottom: 28px; font-size: 16px; }
+    .cta-btn {
+      display: inline-block; background: #C8FF00; color: #07070F;
+      font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 15px;
+      padding: 14px 32px; border-radius: 8px; text-decoration: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .cta-sub { margin-top: 14px; font-size: 13px; color: #5A5A72; }
+
+    .crosslinks {
+      margin-top: 56px; padding-top: 40px;
+      border-top: 1px solid #1E1E2D;
+    }
+    .crosslinks-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #5A5A72; margin-bottom: 20px;
+    }
+    .crosslinks-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px;
+    }
+    .crosslink-card {
+      background: #10101E; border: 1px solid #1E1E2D;
+      border-radius: 10px; padding: 18px 20px;
+      text-decoration: none; display: block;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .crosslink-card:hover { border-color: #C8FF00; transform: translateY(-1px); }
+    .crosslink-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #5A5A72; margin-bottom: 6px;
+    }
+    .crosslink-title {
+      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+      color: #EEEEF5; line-height: 1.3; margin-bottom: 4px;
+    }
+    .crosslink-card:hover .crosslink-title { color: #C8FF00; }
+    .crosslink-desc { font-size: 13px; color: #A0A0B8; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo">Snap<span>OG</span></a>
+    <span class="nav-sep">/</span>
+    <a href="../index.html" class="nav-link">Home</a>
+    <span class="nav-sep">/</span>
+    <a href="./index.html" class="nav-link">Blog</a>
+    <div class="nav-spacer"></div>
+    <a href="../index.html#pricing" class="nav-cta">Start free &rarr;</a>
+  </div>
+</nav>
+
+<!-- ARTICLE -->
+<article class="article-wrap">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="../index.html">SnapOG</a>
+    <span>&rsaquo;</span>
+    <a href="./index.html">Blog</a>
+    <span>&rsaquo;</span>
+    <span>Fix Slack Link Previews</span>
+  </nav>
+
+  <div class="post-tag">Guide &middot; Slack</div>
+
+  <h1>Why Your Links Look Bad in Slack<br>(And How to Fix It)</h1>
+  <p class="post-subtitle">Slack's link unfurling is picky. Here's exactly what it requires — and how to generate an OG image that passes every check in minutes.</p>
+
+  <div class="post-meta">
+    <span>Sep 2026</span>
+    <span>&middot;</span>
+    <span>7 min read</span>
+    <span>&middot;</span>
+    <span>SnapOG</span>
+  </div>
+
+  <div class="prose">
+
+    <p>You paste a link into Slack. Instead of a rich preview with an image, your colleagues see a one-line text citation: just the URL and maybe a title. Nobody clicks it. This is the Open Graph gap — and it's more common than it should be, because Slack's unfurling system is stricter than Twitter or iMessage about what it will display.</p>
+
+    <p>This guide explains exactly what Slack's unfurler requires, the four most common reasons your image isn't showing, and how to add a compliant OG image to any site in under ten minutes.</p>
+
+    <h2>How Slack link unfurling works</h2>
+
+    <p>When you paste a URL into Slack, Slack's server-side crawler fetches that URL and reads its <code>&lt;meta&gt;</code> tags. It's looking for the Open Graph protocol — specifically <code>og:image</code>, <code>og:title</code>, and <code>og:description</code>. If it finds a valid image, it renders the rich preview. If anything is missing or broken, you get the text-only fallback.</p>
+
+    <p>Three things distinguish Slack's crawler from other platforms:</p>
+    <ul>
+      <li><strong>It uses its own user agent</strong> (<code>Slackbot</code>), not Googlebot. Some servers accidentally block unfamiliar crawlers.</li>
+      <li><strong>It has stricter image size requirements</strong> than Twitter or LinkedIn. Images below 500×262px will not display.</li>
+      <li><strong>It caches aggressively</strong>. Once Slack fetches a URL, it caches the result for up to 30 minutes. Updating your meta tags won't immediately fix existing Slack messages.</li>
+    </ul>
+
+    <h2>The four reasons your image isn't showing</h2>
+
+    <h3>Reason 1: No og:image tag at all</h3>
+
+    <p>The most common issue. Many sites — especially developer tools, documentation sites, and early-stage products — simply don't have OG meta tags yet. Slack falls back to text-only with nothing to display.</p>
+
+    <p><strong>Check it:</strong> View source on your page and search for <code>og:image</code>. If it's not there, that's your problem.</p>
+
+    <h3>Reason 2: Image is too small</h3>
+
+    <p>Slack requires a minimum image size of <strong>500×262 pixels</strong>. Images below this threshold will be ignored and Slack will display the text fallback even if the meta tag exists.</p>
+
+    <p>The widely recommended OG image size is 1200×630px (2:1 aspect ratio). This works on Slack, Twitter, LinkedIn, and Facebook simultaneously. Don't use a smaller image thinking it will display faster — it just won't display at all on Slack.</p>
+
+    <h3>Reason 3: Image URL returns a non-image content type</h3>
+
+    <p>Your <code>og:image</code> URL must return <code>Content-Type: image/jpeg</code>, <code>image/png</code>, or <code>image/gif</code>. If it returns <code>text/html</code> (a redirect to a login page), <code>application/octet-stream</code>, or throws a 404/403, Slack won't display it.</p>
+
+    <p>This often happens when:</p>
+    <ul>
+      <li>Your image is behind authentication</li>
+      <li>Your CDN serves images with incorrect MIME types</li>
+      <li>You're using a dynamically generated image URL that errors in production</li>
+    </ul>
+
+    <h3>Reason 4: Slack's cache is serving an old result</h3>
+
+    <p>If you recently added or fixed your OG tags, Slack may be serving a cached version of the old (broken) preview. This is frustrating but temporary — Slack's cache typically expires within 30 minutes.</p>
+
+    <div class="callout-tip">
+      <div class="callout-label">Force cache invalidation</div>
+      <p>You can force Slack to re-fetch a URL by pasting it with a cache-busting query parameter: <code>https://yoursite.com/page?v=2</code>. Slack treats this as a new URL and fetches fresh metadata. Remove the parameter afterward.</p>
+    </div>
+
+    <h2>Slack's OG image requirements (exact spec)</h2>
+
+    <table class="comparison">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Slack Requirement</th>
+          <th>Recommended Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Minimum dimensions</td>
+          <td>500 × 262 px</td>
+          <td class="ok">1200 × 630 px</td>
+        </tr>
+        <tr>
+          <td>Maximum dimensions</td>
+          <td>8000 × 8000 px</td>
+          <td>1200 × 630 px</td>
+        </tr>
+        <tr>
+          <td>File format</td>
+          <td>JPEG, PNG, GIF, BMP, WebP</td>
+          <td class="ok">PNG or JPEG</td>
+        </tr>
+        <tr>
+          <td>Maximum file size</td>
+          <td>5 MB</td>
+          <td class="ok">Under 300 KB</td>
+        </tr>
+        <tr>
+          <td>Aspect ratio</td>
+          <td>Any</td>
+          <td class="ok">1.91:1 (1200×630)</td>
+        </tr>
+        <tr>
+          <td>HTTPS required</td>
+          <td class="ok">Yes</td>
+          <td>Always use HTTPS</td>
+        </tr>
+        <tr>
+          <td>URL must be public</td>
+          <td class="ok">Yes — no auth, no redirect</td>
+          <td>Serve directly, not behind login</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>The correct meta tag structure</h2>
+
+    <p>Add these to the <code>&lt;head&gt;</code> of every page you want to look good in Slack:</p>
+
+    <div class="code-block">
+      <div class="code-label">HTML meta tags</div>
+      <pre>&lt;!-- Open Graph / Slack unfurl --&gt;
+&lt;meta property="og:type" content="website" /&gt;
+&lt;meta property="og:url" content="https://yoursite.com/page" /&gt;
+&lt;meta property="og:title" content="Your Page Title Here" /&gt;
+&lt;meta property="og:description" content="A clear, one-sentence description of this page." /&gt;
+&lt;meta property="og:image" content="https://yoursite.com/og-image.png" /&gt;
+
+&lt;!-- Optional but useful for Twitter/X --&gt;
+&lt;meta name="twitter:card" content="summary_large_image" /&gt;
+&lt;meta name="twitter:image" content="https://yoursite.com/og-image.png" /&gt;</pre>
+    </div>
+
+    <div class="callout-warn">
+      <strong>Common mistake:</strong> Setting <code>og:image</code> to a relative path like <code>/og-image.png</code>. It must be an absolute URL including the protocol and domain. Slack's crawler fetches this URL directly — relative paths don't resolve.
+    </div>
+
+    <h2>Generate a compliant OG image in seconds with SnapOG</h2>
+
+    <p>If you don't have an OG image yet, the fastest path is a URL-based image generator. SnapOG renders a professional 1200×630px image from URL parameters — no design tools, no image files to host:</p>
+
+    <div class="url-box">
+      <div class="url-label">Your OG image URL</div>
+      https://api.snapog.dev/og?title=Your+Page+Title&subtitle=Your+Site+Name&theme=dark
+    </div>
+
+    <p>Add it to your meta tag:</p>
+
+    <div class="code-block">
+      <div class="code-label">HTML</div>
+      <pre>&lt;meta property="og:image"
+  content="https://api.snapog.dev/og?title=My+Product&subtitle=yoursite.com&theme=dark" /&gt;</pre>
+    </div>
+
+    <p>For dynamic pages — blog posts, product pages, user profiles — generate the URL based on the page's content:</p>
+
+    <div class="code-block">
+      <div class="code-label">Next.js page example</div>
+      <pre>// pages/blog/[slug].js
+export async function getStaticProps({ params }) {
+  const post = await getPost(params.slug);
+  const ogImageUrl = `https://api.snapog.dev/og?` +
+    `title=${encodeURIComponent(post.title)}&amp;` +
+    `subtitle=${encodeURIComponent('Your Blog · ' + post.date)}&amp;` +
+    `theme=dark`;
+
+  return {
+    props: { post, ogImageUrl },
+  };
+}
+
+// In your page &lt;Head&gt;:
+&lt;meta property="og:image" content={ogImageUrl} /&gt;</pre>
+    </div>
+
+    <h3>Testing your Slack preview before going live</h3>
+
+    <p>Use these tools to validate your OG tags without waiting for Slack's cache:</p>
+
+    <ul>
+      <li><strong>Slack:</strong> Paste your URL in any Slack channel and watch the preview render live (or not)</li>
+      <li><strong>OpenGraph.xyz:</strong> Paste your URL to see how it renders across platforms including Slack</li>
+      <li><strong>LinkedIn Post Inspector:</strong> Validates OG tags and shows the LinkedIn preview (similar requirements to Slack)</li>
+      <li><strong>curl check:</strong> <code>curl -I https://yoursite.com/og-image.png</code> — verify the Content-Type header is correct and the status is 200</li>
+    </ul>
+
+    <h2>Slack preview troubleshooting checklist</h2>
+
+    <ul class="checklist">
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>og:image tag exists</strong> — view-source and search for <code>og:image</code></p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>og:image URL is absolute</strong> — starts with <code>https://</code>, not <code>/</code></p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>Image is at least 500×262px</strong> — ideally 1200×630px</p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>Image URL returns HTTP 200</strong> — curl the URL to verify, no redirects to login</p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>Content-Type is image/*</strong> — must not return text/html</p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>Image is under 5MB</strong> — Slack silently drops images above this</p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>og:title and og:description are set</strong> — Slack shows these alongside the image</p>
+      </li>
+      <li class="checklist-item">
+        <div class="check-icon pass">✓</div>
+        <p><strong>Slackbot isn't blocked</strong> — check robots.txt and server-level bot blocking rules</p>
+      </li>
+    </ul>
+
+    <h2>Why this matters beyond aesthetics</h2>
+
+    <p>Slack is where teams share links internally — product announcements, blog posts, landing pages, tool recommendations. A rich preview with a professional image gets roughly 3× more engagement than a plain URL. When your company shares your product in a Slack community, a broken preview signals "unfinished" before anyone reads a word.</p>
+
+    <p>For SaaS products and developer tools specifically, Slack is a discovery channel — communities like <code>#tools</code>, <code>#show-and-tell</code>, and <code>#random</code> in developer Slack groups are where links circulate. A broken OG image is a conversion that never happens.</p>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>Fix your Slack previews today</h2>
+    <p>Generate a 1200×630px OG image from a URL. Slack-compliant in seconds, no design tools required. Free tier: 10,000 images/month.</p>
+    <a href="../index.html#pricing" class="cta-btn">Generate your OG image &rarr;</a>
+    <p class="cta-sub">10,000 requests/month free &middot; No card required</p>
+  </div>
+
+  <!-- CROSS-LINKS -->
+  <div class="crosslinks">
+    <div class="crosslinks-label">Related reading</div>
+    <div class="crosslinks-grid">
+      <a href="./what-is-open-graph.html" class="crosslink-card">
+        <div class="crosslink-tag">SnapOG &middot; Explainer</div>
+        <div class="crosslink-title">Open Graph Images Explained: What They Are &amp; Sizes</div>
+        <div class="crosslink-desc">The complete guide to OG protocol — what it is, correct dimensions, how each platform uses it.</div>
+      </a>
+      <a href="./og-images-nextjs-without-satori.html" class="crosslink-card">
+        <div class="crosslink-tag">SnapOG &middot; Next.js</div>
+        <div class="crosslink-title">Dynamic OG Images in Next.js Without Satori</div>
+        <div class="crosslink-desc">Generate per-page OG images in Next.js using a URL API — no JSX, no edge runtime conflicts.</div>
+      </a>
+      <a href="./og-images-static-html-site.html" class="crosslink-card">
+        <div class="crosslink-tag">SnapOG &middot; Guide</div>
+        <div class="crosslink-title">Add OG Images to Any Static HTML Site</div>
+        <div class="crosslink-desc">Two meta tags and you're done — works for GitHub Pages, Jekyll, Hugo, or bare HTML.</div>
+      </a>
+      <a href="./social-preview-images-url-trick.html" class="crosslink-card">
+        <div class="crosslink-tag">SnapOG &middot; Quick Win</div>
+        <div class="crosslink-title">The Laziest Way to Generate Social Preview Images (A URL Trick)</div>
+        <div class="crosslink-desc">One URL parameter gets you a polished OG image everywhere — no code, no build step.</div>
+      </a>
+    </div>
+  </div>
+
+</article>
+
+</body>
+</html>

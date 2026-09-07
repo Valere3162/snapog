@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Laziest Way to Generate Social Preview Images (A URL Trick) | SnapOG Blog</title>
+  <meta name="description" content="No code required. One URL parameter gets you a polished OG image in every Slack preview, Twitter card, and iMessage link unfurl — the lazy developer's trick." />
+  <meta name="keywords" content="social preview image url, og image url generator, open graph image without code, twitter card image url" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="The Laziest Way to Generate Social Preview Images (A URL Trick)" />
+  <meta property="og:description" content="No code required. One URL parameter gets you a polished OG image in every Slack preview, Twitter card, and iMessage link unfurl." />
+  <meta property="og:url" content="https://snapog.dev/blog/social-preview-images-url-trick" />
+  <meta property="og:image" content="https://api.snapog.dev/og?title=The+Laziest+Way+to+Generate+Social+Previews&subtitle=SnapOG+Blog&theme=dark" />
+  <meta property="og:site_name" content="SnapOG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="The Laziest Way to Generate Social Preview Images (A URL Trick)" />
+  <meta name="twitter:description" content="No code required. One URL parameter gets you a polished OG image in every Slack preview and Twitter card." />
+  <meta name="twitter:image" content="https://api.snapog.dev/og?title=The+Laziest+Way+to+Generate+Social+Previews&subtitle=SnapOG+Blog&theme=dark" />
+
+  <!-- Schema.org Article JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "The Laziest Way to Generate Social Preview Images (A URL Trick)",
+    "description": "No code required. One URL parameter gets you a polished OG image in every Slack preview, Twitter card, and iMessage link unfurl.",
+    "author": {
+      "@type": "Person",
+      "name": "Alok"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "SnapOG",
+      "url": "https://snapog.dev"
+    },
+    "datePublished": "2026-09-07",
+    "dateModified": "2026-09-07",
+    "url": "https://snapog.dev/blog/social-preview-images-url-trick",
+    "image": "https://api.snapog.dev/og?title=The+Laziest+Way+to+Generate+Social+Previews&subtitle=SnapOG+Blog&theme=dark",
+    "keywords": ["social preview image url", "og image url generator", "open graph image without code", "twitter card image url"]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070F;
+      color: #EEEEF5;
+      font-family: 'Mulish', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,7,15,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #EEEEF5;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: #C8FF00; }
+
+    .nav-sep {
+      color: #2A2A3D;
+      font-size: 20px;
+      user-select: none;
+    }
+
+    .nav-crumb {
+      color: #A0A0B8;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .nav-crumb:hover { color: #EEEEF5; }
+
+    .nav-spacer { flex: 1; }
+
+    .nav-cta {
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* ARTICLE LAYOUT */
+    .article-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 64px 24px 120px;
+    }
+
+    /* HEADER */
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .tag {
+      background: rgba(200,255,0,0.1);
+      color: #C8FF00;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(200,255,0,0.2);
+    }
+
+    .article-date {
+      color: #5A5A72;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: #EEEEF5;
+      margin-bottom: 20px;
+    }
+
+    .article-subtitle {
+      font-size: 18px;
+      color: #A0A0B8;
+      line-height: 1.65;
+      margin-bottom: 40px;
+      border-bottom: 1px solid #1E1E2D;
+      padding-bottom: 40px;
+    }
+
+    /* BODY TEXT */
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: #EEEEF5;
+      margin: 52px 0 16px;
+      letter-spacing: -0.4px;
+    }
+
+    h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #EEEEF5;
+      margin: 36px 0 12px;
+    }
+
+    p { margin-bottom: 18px; color: #A0A0B8; }
+    p strong { color: #EEEEF5; font-weight: 600; }
+
+    a { color: #C8FF00; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: #0D0D1A;
+      border: 1px solid #1E1E2D;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+      font-size: 13.5px;
+    }
+
+    .code-label {
+      background: #10101E;
+      border-bottom: 1px solid #1E1E2D;
+      padding: 8px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #5A5A72;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      padding: 20px 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.65;
+      white-space: pre;
+    }
+
+    /* syntax tokens */
+    .kw  { color: #C8FF00; }
+    .str { color: #FFB347; }
+    .cm  { color: #5A5A72; font-style: italic; }
+    .fn  { color: #79C0FF; }
+    .attr{ color: #FF7B72; }
+    .num { color: #FF79C6; }
+    .var { color: #EEEEF5; }
+
+    /* inline code */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #10101E;
+      border: 1px solid #1E1E2D;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: #C8FF00;
+    }
+
+    /* CALLOUTS */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      border-left: 3px solid;
+    }
+
+    .callout-tip {
+      background: rgba(200,255,0,0.06);
+      border-color: #C8FF00;
+    }
+
+    .callout-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .callout-tip .callout-label { color: #C8FF00; }
+    .callout p { margin: 0; font-size: 15px; }
+    .callout-tip p { color: #EEEEF5; }
+
+    /* URL DISPLAY */
+    .url-box {
+      background: #0D0D1A;
+      border: 1px solid #2A2A3D;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #C8FF00;
+      word-break: break-all;
+    }
+
+    /* BULLET LIST */
+    ul, ol {
+      margin: 16px 0 20px 24px;
+      color: #A0A0B8;
+    }
+
+    li { margin-bottom: 8px; }
+    li strong { color: #EEEEF5; }
+
+    /* USE CASE LIST */
+    .use-case-list {
+      list-style: none;
+      margin: 24px 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .use-case-item {
+      background: #10101E;
+      border: 1px solid #1E1E2D;
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+
+    .use-case-item strong {
+      color: #EEEEF5;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .use-case-item .use-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #C8FF00;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    /* PARAM TABLE */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0D0D1A;
+      font-size: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .param-table thead th {
+      background: #10101E;
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: #EEEEF5;
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .param-table tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #1E1E2D;
+      color: #A0A0B8;
+      vertical-align: top;
+    }
+
+    .param-table tbody tr:last-child td { border-bottom: none; }
+
+    .param-table tbody td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      color: #C8FF00;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* CTA BOX */
+    .cta-box {
+      background: linear-gradient(135deg, rgba(200,255,0,0.07) 0%, rgba(200,255,0,0.03) 100%);
+      border: 1px solid rgba(200,255,0,0.2);
+      border-radius: 14px;
+      padding: 40px 36px;
+      margin: 60px 0 0;
+      text-align: center;
+    }
+
+    .cta-box h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+    }
+
+    .cta-box p {
+      color: #A0A0B8;
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); text-decoration: none; }
+
+    .cta-sub {
+      margin-top: 14px !important;
+      font-size: 13px !important;
+      color: #5A5A72 !important;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #1E1E2D;
+      margin: 48px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Snap<span>OG</span></a>
+    <span class="nav-sep">/</span>
+    <a href="/blog" class="nav-crumb">Blog</a>
+    <div class="nav-spacer"></div>
+    <a href="/#pricing" class="nav-cta">Start free &rarr;</a>
+  </div>
+</nav>
+
+<!-- ARTICLE -->
+<article class="article-wrap">
+
+  <div class="article-meta">
+    <span class="tag">Quick Win</span>
+    <span class="article-date">September 7, 2026 &middot; 4 min read</span>
+  </div>
+
+  <h1>The Laziest Way to Generate Social Preview Images (A URL Trick)</h1>
+
+  <p class="article-subtitle">
+    You don't have to write any code to get great social previews. One URL does it all.
+    This is the lazy developer's guide to OG images that actually look good.
+  </p>
+
+  <!-- SECTION 1: HOOK -->
+  <h2>Your Link Looks Terrible in Slack</h2>
+
+  <p>
+    You ship something. You paste the link into Slack, Twitter, Discord. Everyone sees a
+    gray box with your site title in a default font. Sometimes just the URL. Nobody clicks it.
+  </p>
+
+  <p>
+    The fix is not a redesign. It's not a Satori setup or a custom API route. It's one URL
+    parameter. You paste it into a <code>&lt;meta&gt;</code> tag and it's done. Your link
+    unfurls with a polished 1200&times;630 image in Slack, a proper Twitter Card, a rich
+    preview in iMessage — everywhere social crawlers look.
+  </p>
+
+  <p>
+    The trick: let a URL do the rendering for you.
+  </p>
+
+  <hr />
+
+  <!-- SECTION 2: THE TRICK -->
+  <h2>The Trick: One URL, Zero Code</h2>
+
+  <p>
+    SnapOG is a URL-based OG image API. You describe what you want in query parameters,
+    and it returns a 1200&times;630 PNG. No signup needed to see it — try opening this in a new tab:
+  </p>
+
+  <div class="url-box">https://api.snapog.dev/og?title=My+Article&amp;subtitle=mysite.dev&amp;theme=dark&amp;logo=https://mysite.dev/favicon.png</div>
+
+  <p>Here's what each parameter does:</p>
+
+  <table class="param-table">
+    <thead>
+      <tr>
+        <th>Param</th>
+        <th>What it does</th>
+        <th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>title</td>
+        <td>Main headline — the big text on the image</td>
+        <td><code>My+Article+Title</code></td>
+      </tr>
+      <tr>
+        <td>subtitle</td>
+        <td>Secondary line — domain, author, category</td>
+        <td><code>mysite.dev</code></td>
+      </tr>
+      <tr>
+        <td>theme</td>
+        <td><code>dark</code> or <code>light</code> — controls the color scheme</td>
+        <td><code>dark</code></td>
+      </tr>
+      <tr>
+        <td>logo</td>
+        <td>URL to your logo or favicon — shown top-left</td>
+        <td><code>https://...</code></td>
+      </tr>
+      <tr>
+        <td>tag</td>
+        <td>Small label badge — category, section, type</td>
+        <td><code>Tutorial</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    To use it, drop the URL directly into your <code>&lt;head&gt;</code>:
+  </p>
+
+  <div class="code-block">
+    <div class="code-label">HTML — drop this in your &lt;head&gt;</div>
+    <pre><span class="attr">&lt;meta</span> <span class="fn">property</span>=<span class="str">"og:image"</span>
+      <span class="fn">content</span>=<span class="str">"https://api.snapog.dev/og?title=My+Article&amp;subtitle=mysite.dev&amp;theme=dark"</span> <span class="attr">/&gt;</span>
+<span class="attr">&lt;meta</span> <span class="fn">name</span>=<span class="str">"twitter:card"</span> <span class="fn">content</span>=<span class="str">"summary_large_image"</span> <span class="attr">/&gt;</span>
+<span class="attr">&lt;meta</span> <span class="fn">name</span>=<span class="str">"twitter:image"</span>
+      <span class="fn">content</span>=<span class="str">"https://api.snapog.dev/og?title=My+Article&amp;subtitle=mysite.dev&amp;theme=dark"</span> <span class="attr">/&gt;</span></pre>
+  </div>
+
+  <p>That's it. Ship it.</p>
+
+  <div class="callout callout-tip">
+    <div class="callout-label">Tip</div>
+    <p>URL-encode spaces as <code>+</code> or <code>%20</code>. Most HTML is fine with either, but <code>+</code> reads cleaner in source. Avoid special characters in the title — strip them or encode them.</p>
+  </div>
+
+  <hr />
+
+  <!-- SECTION 3: USE CASES -->
+  <h2>5 Places This Works Right Now</h2>
+
+  <ul class="use-case-list">
+    <li class="use-case-item">
+      <strong>Static sites (Jekyll, Hugo, 11ty, plain HTML)</strong>
+      <span class="use-url">https://api.snapog.dev/og?title=Your+Post+Title&amp;subtitle=yourblog.com&amp;theme=dark</span>
+    </li>
+    <li class="use-case-item">
+      <strong>Ghost or WordPress blogs — no plugin needed</strong>
+      <span class="use-url">https://api.snapog.dev/og?title={{post.title}}&amp;subtitle={{@site.title}}&amp;tag={{primary_tag.name}}&amp;theme=dark</span>
+    </li>
+    <li class="use-case-item">
+      <strong>GitHub project pages and README link previews</strong>
+      <span class="use-url">https://api.snapog.dev/og?title=my-cool-lib&amp;subtitle=github.com/you&amp;tag=Open+Source&amp;theme=dark</span>
+    </li>
+    <li class="use-case-item">
+      <strong>Email newsletters (link preview in mail clients)</strong>
+      <span class="use-url">https://api.snapog.dev/og?title=Issue+%2342%3A+What+I+Shipped&amp;subtitle=yourname.substack.com&amp;theme=dark</span>
+    </li>
+    <li class="use-case-item">
+      <strong>Slack/Discord link drops and internal tool dashboards</strong>
+      <span class="use-url">https://api.snapog.dev/og?title=Q3+Revenue+Dashboard&amp;subtitle=internal.yourco.com&amp;tag=Finance&amp;theme=dark</span>
+    </li>
+  </ul>
+
+  <p>
+    In each case the pattern is identical: build a URL, put it in the <code>og:image</code> tag, done.
+    No build step, no npm package, no edge function, no font wrangling.
+  </p>
+
+  <hr />
+
+  <!-- SECTION 4: WHEN TO UPGRADE -->
+  <h2>When to Stop Being Lazy and Write Code</h2>
+
+  <p>
+    The URL trick covers 80% of cases. But there are two situations where you genuinely need
+    something more:
+  </p>
+
+  <ul>
+    <li><strong>Truly dynamic titles from a CMS.</strong> If your post title comes from a database query
+    at request time, you'll want to build the SnapOG URL server-side and inject it into your template.
+    That's a few lines of string interpolation, not a Satori setup.</li>
+    <li><strong>Per-user or per-session content.</strong> User profile pages, personalized dashboards,
+    anything where the image content is unique per visitor — there you want programmatic URL construction.</li>
+  </ul>
+
+  <p>
+    For the Next.js App Router pattern — constructing the URL inside <code>generateMetadata</code>
+    with full Prisma/Node access, no edge runtime required — read
+    <a href="./og-images-nextjs-without-satori.html">Dynamic OG Images in Next.js Without Writing Satori JSX</a>.
+    It covers the full setup in about 15 lines of code.
+  </p>
+
+  <p>
+    But if you're reading this and you haven't shipped OG images yet because the setup looked
+    complicated: start with the URL trick. You can always upgrade later.
+  </p>
+
+  <hr />
+
+  <!-- RELATED POSTS -->
+  <div style="margin: 56px 0 0; padding: 32px; background: #10101E; border: 1px solid #26263A; border-radius: 14px;">
+    <h3 style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #EEEEF5; margin-bottom: 20px;">Related articles</h3>
+    <ul style="list-style: none; margin: 0; padding: 0;">
+      <li style="margin-bottom: 12px;"><a href="./og-images-nextjs-without-satori.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">Dynamic OG Images in Next.js Without Writing Satori JSX</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; URL-param API approach for Next.js projects</span></li>
+      <li style="margin-bottom: 12px;"><a href="./og-images-static-html-site.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">How to Add OG Images to Any Static HTML Site</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; No build step, no framework required</span></li>
+      <li style="margin-bottom: 12px;"><a href="./what-is-open-graph.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">Open Graph Images Explained: What They Are, Sizes &amp; How to Generate Them</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; OG protocol, image dimensions, platform behavior</span></li>
+      <li style="margin-bottom: 12px;"><a href="./slack-link-preview-fix.html" style="color: #00D2FF; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;">Why Your Links Look Bad in Slack (And How to Fix It)</a> <span style="color: #5A5A72; font-size: 13px; margin-left: 8px;">&mdash; Slack unfurl requirements and troubleshooting</span></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>Get your free API key at SnapOG</h2>
+    <p>10,000 requests/month, no credit card required. Your links will look good in Slack starting today.</p>
+    <a href="/#pricing" class="cta-btn">Start for free &rarr;</a>
+    <p class="cta-sub">10,000 requests/month free &middot; No card required &middot; Cancel anytime</p>
+  </div>
+
+</article>
+
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference — SnapOG</title>
+  <meta name="description" content="SnapOG API reference. Generate Open Graph images via one GET request. Edge-cached globally." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #07070F;
+      --bg-surface:  #0D0D1A;
+      --bg-card:     #10101E;
+      --border:      #1E1E2D;
+      --border-hi:   #2A2A3D;
+      --accent:      #C8FF00;
+      --accent-dim:  rgba(200, 255, 0, 0.10);
+      --accent-glow: rgba(200, 255, 0, 0.20);
+      --text-hi:     #EEEEF5;
+      --text-lo:     #A0A0B8;
+      --text-xlo:    #5A5A72;
+      --red:         #FF5555;
+      --red-dim:     rgba(255, 85, 85, 0.10);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Mulish', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      --radius:       8px;
+      --radius-lg:    12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      text-decoration: none;
+    }
+    .sidebar-logo span {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-hi);
+    }
+    .sidebar-logo em {
+      color: var(--accent);
+      font-style: normal;
+    }
+    .sidebar-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+    .nav-section {
+      padding: 8px 24px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-xlo);
+      margin-top: 16px;
+    }
+    .nav-link {
+      display: block;
+      padding: 7px 24px;
+      color: var(--text-lo);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: color 0.15s, background 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-hi);
+      background: var(--accent-dim);
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main content ── */
+    .main {
+      padding: 48px 56px;
+      max-width: 820px;
+    }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .main { padding: 32px 20px; }
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    h1 em { color: var(--accent); font-style: normal; }
+    h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      margin: 48px 0 16px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    h2:first-of-type { border-top: none; padding-top: 0; }
+    h3 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-lo);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 24px 0 10px;
+    }
+    p { color: var(--text-lo); margin-bottom: 16px; }
+    p strong { color: var(--text-hi); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Badges ── */
+    .method {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-right: 8px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(200,255,0,0.3);
+    }
+    .method.post {
+      background: rgba(100, 160, 255, 0.10);
+      color: #64A0FF;
+      border-color: rgba(100, 160, 255, 0.3);
+    }
+
+    /* ── Endpoint header ── */
+    .endpoint-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--text-hi);
+    }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      line-height: 1.6;
+    }
+    pre code { color: var(--text-lo); }
+    pre code .kw  { color: var(--accent); }
+    pre code .str { color: #87D96B; }
+    pre code .num { color: #FF9D6C; }
+    pre code .cmt { color: var(--text-xlo); }
+    pre code .key { color: #64A0FF; }
+
+    /* ── Param table ── */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13.5px;
+    }
+    .param-table th {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-hi);
+      color: var(--text-xlo);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .param-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: var(--text-lo);
+    }
+    .param-table tr:last-child td { border-bottom: none; }
+    .param-table td:first-child {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-hi);
+    }
+    .param-table td code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: var(--text-lo);
+    }
+    .required {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255,85,85,0.12);
+      color: var(--red);
+      border: 1px solid rgba(255,85,85,0.25);
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .optional {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(200,255,0,0.2);
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    /* ── Info / warning callouts ── */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-dim);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px;
+      margin: 20px 0;
+      color: var(--text-lo);
+      font-size: 13.5px;
+    }
+    .callout strong { color: var(--text-hi); display: block; margin-bottom: 4px; }
+    .callout.warn { border-left-color: var(--red); background: var(--red-dim); }
+
+    /* ── Tier table ── */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .tier-card h4 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-hi);
+      margin-bottom: 4px;
+    }
+    .tier-card .price {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .tier-card p { font-size: 13px; margin: 0; }
+
+    /* ── Error table ── */
+    .status {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .status-2 { background: rgba(100,200,80,0.12); color: #64C850; }
+    .status-4 { background: rgba(255,150,60,0.12); color: #FF963C; }
+    .status-5 { background: var(--red-dim); color: var(--red); }
+
+    /* ── Header bar ── */
+    .topbar {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-surface);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--text-lo);
+      margin-bottom: 32px;
+      max-width: 560px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="index.html" class="sidebar-logo">
+        <span>Snap<em>OG</em></span>
+        <span class="sidebar-badge">API</span>
+      </a>
+
+      <div class="nav-section">Getting Started</div>
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#authentication" class="nav-link">Authentication</a>
+      <a href="#quickstart" class="nav-link">Quick Start</a>
+
+      <div class="nav-section">Endpoints</div>
+      <a href="#og-image" class="nav-link">GET /api/og</a>
+      <a href="#usage" class="nav-link">GET /api/usage</a>
+      <a href="#health" class="nav-link">GET /api/health</a>
+      <a href="#checkout" class="nav-link">POST /api/checkout</a>
+
+      <div class="nav-section">Reference</div>
+      <a href="#parameters" class="nav-link">All Parameters</a>
+      <a href="#rate-limits" class="nav-link">Rate Limits</a>
+      <a href="#errors" class="nav-link">Error Codes</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+
+      <div class="nav-section" style="margin-top:16px;">Also from Auto Company</div>
+      <a href="https://shot.dev/api.html" target="_blank" rel="noopener" class="nav-link" style="opacity:0.75">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00E5FF;margin-right:2px;flex-shrink:0"></span>
+        shot.dev API
+      </a>
+      <a href="https://pdfsnap.dev/api.html" target="_blank" rel="noopener" class="nav-link" style="opacity:0.75">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF7A1A;margin-right:2px;flex-shrink:0"></span>
+        pdfsnap API
+      </a>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <h1>API <em>Reference</em></h1>
+      <p class="hero-subtitle">
+        SnapOG generates beautiful Open Graph images at the edge — one GET request, globally cached, no setup required.
+      </p>
+
+      <!-- Overview -->
+      <h2 id="overview">Overview</h2>
+      <p>The SnapOG API is a simple REST API that generates OG images (1200×630 px PNG) via a single GET request. All parameters are URL query strings — no JSON body, no SDK required.</p>
+      <p><strong>Base URL:</strong></p>
+      <pre><code>https://snapog.dev</code></pre>
+
+      <div class="callout">
+        <strong>Edge-cached by default.</strong>
+        Every OG image is served from Vercel's global edge network. Identical parameter sets return the cached image — no re-render cost.
+      </div>
+
+      <!-- Authentication -->
+      <h2 id="authentication">Authentication</h2>
+      <p>Free-tier requests need no authentication — just add your query params and call the endpoint. Paid-tier API keys unlock higher rate limits.</p>
+
+      <h3>Free tier (no auth)</h3>
+      <pre><code>GET /api/og?title=Hello+World</code></pre>
+
+      <h3>Paid tier (Bearer token)</h3>
+      <pre><code>GET /api/og?title=Hello+World
+Authorization: Bearer sk_pro_eyJhbGciOi...</code></pre>
+
+      <p>API keys are delivered via email after checkout. They are prefixed <code>sk_pro_</code> or <code>sk_business_</code>. Keep your key secret — it controls your rate limit identity.</p>
+
+      <!-- Quick Start -->
+      <h2 id="quickstart">Quick Start</h2>
+      <p>No signup required for free tier. Paste this in your browser or terminal:</p>
+      <pre><code><span class="cmt"># Generate a basic OG image</span>
+curl "https://snapog.dev/api/og?title=Hello+World" --output og.png
+
+<span class="cmt"># With description and custom accent colour</span>
+curl "https://snapog.dev/api/og?title=My+Product&description=The+best+tool&bg=0D1117&color=C8FF00" \
+  --output og.png</code></pre>
+
+      <p>Use it as an <code>&lt;img&gt;</code> src, set it as <code>&lt;meta property="og:image"&gt;</code>, or embed it anywhere images are accepted:</p>
+      <pre><code><span class="cmt">&lt;!-- In your HTML head --&gt;</span>
+&lt;meta property="og:image"
+  content="https://snapog.dev/api/og?title=My+Page&description=Short+description" /&gt;</code></pre>
+
+      <!-- OG Image endpoint -->
+      <h2 id="og-image">GET /api/og</h2>
+      <p>Generate a 1200×630 Open Graph image. Returns <code>image/png</code>.</p>
+
+      <div class="endpoint-header">
+        <span class="method">GET</span>
+        <span class="endpoint-path">https://snapog.dev/api/og</span>
+      </div>
+
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>title <span class="required">required</span></td>
+            <td>string</td>
+            <td>—</td>
+            <td>Main heading text. Up to ~80 chars; font size scales automatically.</td>
+          </tr>
+          <tr>
+            <td>description <span class="optional">optional</span></td>
+            <td>string</td>
+            <td>—</td>
+            <td>Subtitle text rendered below the title.</td>
+          </tr>
+          <tr>
+            <td>bg <span class="optional">optional</span></td>
+            <td>hex string</td>
+            <td><code>07070F</code></td>
+            <td>Background color. 3 or 6-character hex, without the <code>#</code>.</td>
+          </tr>
+          <tr>
+            <td>color <span class="optional">optional</span></td>
+            <td>hex string</td>
+            <td><code>C8FF00</code></td>
+            <td>Accent / highlight color. Used for decorative elements and title emphasis.</td>
+          </tr>
+          <tr>
+            <td>logo <span class="optional">optional</span></td>
+            <td>URL</td>
+            <td>—</td>
+            <td>Absolute URL of a PNG/SVG logo to embed in the top-left corner.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Example Response</h3>
+      <p>Returns a PNG image (binary). Content-Type: <code>image/png</code>. Cache-Control: <code>public, max-age=86400, stale-while-revalidate=604800</code>.</p>
+
+      <h3>Code Examples</h3>
+      <pre><code><span class="cmt">// JavaScript — fetch as blob</span>
+<span class="kw">const</span> params = <span class="kw">new</span> URLSearchParams({
+  title: <span class="str">'Ship Fast, Learn Faster'</span>,
+  description: <span class="str">'My weekend project'</span>,
+  bg: <span class="str">'0D1117'</span>,
+  color: <span class="str">'C8FF00'</span>,
+});
+<span class="kw">const</span> url = <span class="str">`https://snapog.dev/api/og?<span class="kw">${params}</span>`</span>;
+
+<span class="cmt">// Use directly as og:image</span>
+document.querySelector(<span class="str">'meta[property="og:image"]'</span>).content = url;</code></pre>
+
+      <pre><code><span class="cmt"># Python — download to file</span>
+<span class="kw">import</span> requests, urllib.parse
+
+params = {
+    <span class="str">"title"</span>: <span class="str">"Ship Fast, Learn Faster"</span>,
+    <span class="str">"description"</span>: <span class="str">"My weekend project"</span>,
+    <span class="str">"bg"</span>: <span class="str">"0D1117"</span>,
+}
+r = requests.get(<span class="str">"https://snapog.dev/api/og"</span>, params=params)
+<span class="kw">with</span> open(<span class="str">"og.png"</span>, <span class="str">"wb"</span>) <span class="kw">as</span> f:
+    f.write(r.content)</code></pre>
+
+      <!-- Usage endpoint -->
+      <h2 id="usage">GET /api/usage</h2>
+      <p>Check your current usage and remaining quota for the billing month.</p>
+
+      <div class="endpoint-header">
+        <span class="method">GET</span>
+        <span class="endpoint-path">https://snapog.dev/api/usage</span>
+      </div>
+
+      <p>Pass your API key in the <code>Authorization</code> header for paid-tier usage. Without auth, returns free-tier usage keyed to your IP.</p>
+
+      <h3>Response</h3>
+      <pre><code>{
+  <span class="key">"tier"</span>: <span class="str">"pro"</span>,
+  <span class="key">"used"</span>: <span class="num">142</span>,
+  <span class="key">"limit"</span>: <span class="kw">null</span>,        <span class="cmt">// null = unlimited</span>
+  <span class="key">"remaining"</span>: <span class="kw">null</span>,
+  <span class="key">"reset_at"</span>: <span class="str">"2026-10-01T00:00:00.000Z"</span>,
+  <span class="key">"customer_id"</span>: <span class="str">"cus_abc123"</span>
+}</code></pre>
+
+      <!-- Health endpoint -->
+      <h2 id="health">GET /api/health</h2>
+      <p>Liveness check. Returns <code>200</code> when all critical services are configured, <code>503</code> if degraded. Use this for uptime monitoring.</p>
+
+      <div class="endpoint-header">
+        <span class="method">GET</span>
+        <span class="endpoint-path">https://snapog.dev/api/health</span>
+      </div>
+
+      <h3>Response</h3>
+      <pre><code>{
+  <span class="key">"status"</span>: <span class="str">"ok"</span>,          <span class="cmt">// "ok" | "degraded"</span>
+  <span class="key">"service"</span>: <span class="str">"snapog"</span>,
+  <span class="key">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="key">"uptime_ms"</span>: <span class="num">2341</span>,
+  <span class="key">"timestamp"</span>: <span class="str">"2026-09-07T12:00:00.000Z"</span>,
+  <span class="key">"checks"</span>: {
+    <span class="key">"stripe"</span>: <span class="str">"ok"</span>,
+    <span class="key">"jwt"</span>: <span class="str">"ok"</span>,
+    <span class="key">"kv"</span>: <span class="str">"ok"</span>        <span class="cmt">// "ok" | "missing" | "error"</span>
+  }
+}</code></pre>
+
+      <!-- Checkout endpoint -->
+      <h2 id="checkout">POST /api/checkout</h2>
+      <p>Create a Stripe Checkout session to upgrade to Pro or Business. Redirects to Stripe-hosted payment page.</p>
+
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">https://snapog.dev/api/checkout</span>
+      </div>
+
+      <table class="param-table">
+        <thead>
+          <tr><th>Body (JSON)</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>plan <span class="required">required</span></td>
+            <td>string</td>
+            <td><code>"pro"</code> or <code>"business"</code></td>
+          </tr>
+          <tr>
+            <td>email <span class="optional">optional</span></td>
+            <td>string</td>
+            <td>Pre-fills email on Stripe checkout page.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Response</h3>
+      <pre><code>{ <span class="key">"url"</span>: <span class="str">"https://checkout.stripe.com/pay/cs_live_..."</span> }</code></pre>
+
+      <!-- All Parameters -->
+      <h2 id="parameters">All Parameters</h2>
+      <p>Quick reference for <code>GET /api/og</code>:</p>
+      <table class="param-table">
+        <thead>
+          <tr><th>Param</th><th>Required</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>title</td><td>Yes</td><td><code>Hello+World</code></td></tr>
+          <tr><td>description</td><td>No</td><td><code>A+great+product</code></td></tr>
+          <tr><td>bg</td><td>No</td><td><code>0D1117</code></td></tr>
+          <tr><td>color</td><td>No</td><td><code>C8FF00</code></td></tr>
+          <tr><td>logo</td><td>No</td><td><code>https://...</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Rate Limits -->
+      <h2 id="rate-limits">Rate Limits</h2>
+      <p>Rate limits are enforced per calendar month and reset on the 1st of each month (UTC).</p>
+
+      <div class="tier-grid">
+        <div class="tier-card">
+          <h4>Free</h4>
+          <div class="price">500</div>
+          <p>requests / month<br/>No API key needed — keyed by IP.</p>
+        </div>
+        <div class="tier-card">
+          <h4>Pro</h4>
+          <div class="price">&#8734;</div>
+          <p>Unlimited requests<br/><code>sk_pro_...</code> key</p>
+        </div>
+        <div class="tier-card">
+          <h4>Business</h4>
+          <div class="price">&#8734;</div>
+          <p>Unlimited requests<br/><code>sk_business_...</code> key</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>429 — Rate limit exceeded.</strong>
+        The response includes <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>X-RateLimit-Reset</code> headers. Upgrade to Pro to remove free-tier limits.
+      </div>
+
+      <!-- Errors -->
+      <h2 id="errors">Error Codes</h2>
+      <table class="param-table">
+        <thead>
+          <tr><th>Status</th><th>Code</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status status-2">200</span></td>
+            <td>—</td>
+            <td>Success — PNG image returned.</td>
+          </tr>
+          <tr>
+            <td><span class="status status-4">400</span></td>
+            <td>missing_title</td>
+            <td><code>title</code> parameter is required.</td>
+          </tr>
+          <tr>
+            <td><span class="status status-4">401</span></td>
+            <td>invalid_key</td>
+            <td>Bearer token is malformed or expired.</td>
+          </tr>
+          <tr>
+            <td><span class="status status-4">429</span></td>
+            <td>rate_limited</td>
+            <td>Monthly quota exceeded for this tier.</td>
+          </tr>
+          <tr>
+            <td><span class="status status-5">500</span></td>
+            <td>render_error</td>
+            <td>Internal rendering error — retry with backoff.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Error body format</h3>
+      <pre><code>{
+  <span class="key">"error"</span>: <span class="str">"Rate limit exceeded. Upgrade to Pro for unlimited access."</span>,
+  <span class="key">"upgrade_url"</span>: <span class="str">"https://snapog.dev/#pricing"</span>
+}</code></pre>
+
+      <!-- Pricing -->
+      <h2 id="pricing">Pricing</h2>
+      <div class="tier-grid">
+        <div class="tier-card">
+          <h4>Free</h4>
+          <div class="price">$0</div>
+          <p>500 images/mo · No card needed</p>
+        </div>
+        <div class="tier-card" style="border-color: var(--accent);">
+          <h4>Pro</h4>
+          <div class="price">$9<small style="font-size:14px;color:var(--text-lo)">/mo</small></div>
+          <p>Unlimited · API key · Email delivery</p>
+        </div>
+        <div class="tier-card">
+          <h4>Business</h4>
+          <div class="price">$49<small style="font-size:14px;color:var(--text-lo)">/mo</small></div>
+          <p>Unlimited · Priority support · Usage API</p>
+        </div>
+      </div>
+
+      <p style="margin-top:32px;font-size:13px;color:var(--text-xlo);">
+        Questions? <a href="https://github.com/Valere3162/snapog/issues">Open an issue on GitHub</a> &middot; <a href="index.html">Back to homepage</a>
+        &middot; Also check: <a href="https://shot.dev/api.html">shot.dev API</a>, <a href="https://pdfsnap.dev/api.html">pdfsnap API</a>
+      </p>
+    </main>
+  </div>
+</body>
+</html>

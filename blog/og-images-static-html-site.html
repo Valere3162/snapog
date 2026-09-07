@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Add OG Images to Any Static HTML Site | SnapOG Blog</title>
+  <meta name="description" content="No framework, no build step. Learn how to add dynamic Open Graph images to any static HTML site, GitHub Pages, or bare HTML file — with two lines of code." />
+  <meta name="keywords" content="og image static site, html og image without framework, add og image html, open graph image github pages, og image vanilla html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to Add OG Images to Any Static HTML Site" />
+  <meta property="og:description" content="No framework, no build step. Add dynamic Open Graph images to any static HTML site in two lines of code." />
+  <meta property="og:url" content="https://snapog.dev/blog/og-images-static-html-site" />
+  <meta property="og:image" content="https://api.snapog.dev/og?title=OG+Images+for+Static+HTML+Sites&subtitle=No+Framework+Required&theme=dark" />
+  <meta property="og:site_name" content="SnapOG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to Add OG Images to Any Static HTML Site" />
+  <meta name="twitter:description" content="No framework, no build step. Add dynamic OG images to any static HTML file in two lines." />
+  <meta name="twitter:image" content="https://api.snapog.dev/og?title=OG+Images+for+Static+HTML+Sites&subtitle=No+Framework+Required&theme=dark" />
+
+  <!-- Schema.org Article JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Add OG Images to Any Static HTML Site",
+    "description": "No framework, no build step. Learn how to add dynamic Open Graph images to any static HTML site, GitHub Pages, or bare HTML file.",
+    "author": {
+      "@type": "Person",
+      "name": "Alok"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "SnapOG",
+      "url": "https://snapog.dev"
+    },
+    "datePublished": "2026-09-07",
+    "dateModified": "2026-09-07",
+    "url": "https://snapog.dev/blog/og-images-static-html-site",
+    "image": "https://api.snapog.dev/og?title=OG+Images+for+Static+HTML+Sites&subtitle=No+Framework+Required&theme=dark",
+    "keywords": ["og image static site", "html og image without framework", "add og image html", "open graph image github pages"]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070F;
+      color: #EEEEF5;
+      font-family: 'Mulish', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,7,15,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #EEEEF5;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: #C8FF00; }
+
+    .nav-sep { color: #2A2A3D; font-size: 20px; user-select: none; }
+
+    .nav-crumb {
+      color: #A0A0B8;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .nav-crumb:hover { color: #EEEEF5; }
+    .nav-spacer { flex: 1; }
+
+    .nav-cta {
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    .article-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 64px 24px 120px;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .tag {
+      background: rgba(200,255,0,0.1);
+      color: #C8FF00;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(200,255,0,0.2);
+    }
+
+    .article-date { color: #5A5A72; font-size: 13px; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: #EEEEF5;
+      margin-bottom: 20px;
+    }
+
+    .article-subtitle {
+      font-size: 18px;
+      color: #A0A0B8;
+      line-height: 1.65;
+      margin-bottom: 40px;
+      border-bottom: 1px solid #1E1E2D;
+      padding-bottom: 40px;
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: #EEEEF5;
+      margin: 52px 0 16px;
+      letter-spacing: -0.4px;
+    }
+
+    h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #EEEEF5;
+      margin: 36px 0 12px;
+    }
+
+    p { margin-bottom: 18px; color: #A0A0B8; }
+    p strong { color: #EEEEF5; font-weight: 600; }
+
+    a { color: #C8FF00; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .code-block {
+      background: #0D0D1A;
+      border: 1px solid #1E1E2D;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+      font-size: 13.5px;
+    }
+
+    .code-label {
+      background: #10101E;
+      border-bottom: 1px solid #1E1E2D;
+      padding: 8px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #5A5A72;
+      letter-spacing: 0.05em;
+    }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.65;
+      white-space: pre;
+    }
+
+    .kw  { color: #C8FF00; }
+    .str { color: #FFB347; }
+    .cm  { color: #5A5A72; font-style: italic; }
+    .fn  { color: #79C0FF; }
+    .htag { color: #7EE787; }
+    .attr { color: #FF7B72; }
+    .num { color: #FF79C6; }
+    .var { color: #EEEEF5; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #10101E;
+      border: 1px solid #1E1E2D;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: #C8FF00;
+    }
+
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      border-left: 3px solid;
+    }
+
+    .callout-tip {
+      background: rgba(200,255,0,0.06);
+      border-color: #C8FF00;
+    }
+
+    .callout-warn {
+      background: rgba(255,77,109,0.08);
+      border-color: #FF4D6D;
+    }
+
+    .callout-info {
+      background: rgba(121,192,255,0.06);
+      border-color: #79C0FF;
+    }
+
+    .callout-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .callout-tip .callout-label  { color: #C8FF00; }
+    .callout-warn .callout-label { color: #FF4D6D; }
+    .callout-info .callout-label { color: #79C0FF; }
+    .callout p { margin: 0; font-size: 15px; color: #EEEEF5; }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 28px 0;
+      border-radius: 10px;
+      border: 1px solid #1E1E2D;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0D0D1A;
+      font-size: 14px;
+    }
+
+    thead th {
+      background: #10101E;
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: #EEEEF5;
+      border-bottom: 1px solid #1E1E2D;
+    }
+
+    tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #1E1E2D;
+      color: #A0A0B8;
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #10101E; }
+    tbody td:first-child { color: #EEEEF5; font-weight: 600; font-size: 13px; }
+
+    .ok  { color: #C8FF00; font-weight: 600; }
+    .bad { color: #FF4D6D; font-weight: 600; }
+    .mid { color: #FFB347; font-weight: 600; }
+
+    .step-list {
+      counter-reset: steps;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      counter-increment: steps;
+      min-width: 32px;
+      height: 32px;
+      background: rgba(200,255,0,0.1);
+      border: 1px solid rgba(200,255,0,0.25);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #C8FF00;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body h3 { margin-top: 0; }
+    .step-body p  { margin-bottom: 8px; }
+
+    .related-box {
+      background: #0D0D1A;
+      border: 1px solid #1E1E2D;
+      border-radius: 12px;
+      padding: 28px;
+      margin: 48px 0;
+    }
+
+    .related-box h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: #EEEEF5;
+      margin: 0 0 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .related-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .related-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #A0A0B8;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .related-link:hover { color: #C8FF00; text-decoration: none; }
+
+    .related-link-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(200,255,0,0.08);
+      color: #C8FF00;
+      border: 1px solid rgba(200,255,0,0.15);
+      flex-shrink: 0;
+    }
+
+    .related-link-tag.screenshot {
+      background: rgba(121,192,255,0.08);
+      color: #79C0FF;
+      border-color: rgba(121,192,255,0.2);
+    }
+
+    .related-link-tag.pdf {
+      background: rgba(255,179,71,0.08);
+      color: #FFB347;
+      border-color: rgba(255,179,71,0.2);
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, rgba(200,255,0,0.07), rgba(200,255,0,0.03));
+      border: 1px solid rgba(200,255,0,0.2);
+      border-radius: 14px;
+      padding: 40px 36px;
+      text-align: center;
+      margin-top: 64px;
+    }
+
+    .cta-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #EEEEF5;
+      margin-bottom: 12px;
+      letter-spacing: -0.4px;
+    }
+
+    .cta-box p { color: #A0A0B8; font-size: 16px; margin-bottom: 28px; }
+
+    .cta-btn {
+      display: inline-block;
+      background: #C8FF00;
+      color: #07070F;
+      font-family: 'Mulish', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); text-decoration: none; }
+
+    .cta-sub { margin-top: 14px; font-size: 13px; color: #5A5A72; }
+
+    hr { border: none; border-top: 1px solid #1E1E2D; margin: 48px 0; }
+
+    ul, ol { padding-left: 24px; margin-bottom: 18px; color: #A0A0B8; }
+    li { margin-bottom: 8px; }
+    li strong { color: #EEEEF5; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Snap<span>OG</span></a>
+    <span class="nav-sep">/</span>
+    <a href="/blog" class="nav-crumb">Blog</a>
+    <div class="nav-spacer"></div>
+    <a href="/#pricing" class="nav-cta">Start free &rarr;</a>
+  </div>
+</nav>
+
+<!-- ARTICLE -->
+<article class="article-wrap">
+
+  <div class="article-meta">
+    <span class="tag">Guide</span>
+    <span class="article-date">September 7, 2026 &middot; 6 min read</span>
+  </div>
+
+  <h1>How to Add OG Images to Any Static HTML Site</h1>
+
+  <p class="article-subtitle">
+    No framework, no build step, no JavaScript required. Whether you're on GitHub Pages, Netlify, a bare HTML file, or a Hugo blog — you can have polished social preview images live in under five minutes.
+  </p>
+
+  <!-- WHY -->
+  <h2>Why static sites miss out on social previews</h2>
+
+  <p>When someone shares your link on Twitter, LinkedIn, or in Slack, the platform fetches your page's <code>&lt;meta&gt;</code> tags and looks for an <code>og:image</code>. If it finds nothing — or finds a broken image — the link unfurl shows a plain grey box. That grey box kills clicks.</p>
+
+  <p>Framework users have it easy: Vercel ships <code>ImageResponse</code>, Next.js App Router has <code>opengraph-image.tsx</code>, Astro has <code>@astrojs/og</code>. But if you're running plain HTML, a Jekyll blog, a Hugo site, or a simple GitHub Pages project, none of that exists. You're on your own.</p>
+
+  <p>The usual workarounds — Canva exports, hand-crafted PNGs, static image files — break the moment a page title changes. They don't scale, and they look inconsistent across your site.</p>
+
+  <div class="callout callout-tip">
+    <div class="callout-label">The fix</div>
+    <p>An OG image URL is just a URL. If that URL returns an image, you're done. SnapOG lets you construct that URL from query parameters — no server required on your end.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <h2>How URL-based OG images work</h2>
+
+  <p>SnapOG exposes a single endpoint:</p>
+
+  <div class="code-block">
+    <div class="code-label">URL PATTERN</div>
+    <pre>https://api.snapog.dev/og?title=Your+Page+Title&subtitle=Your+Tagline&theme=dark</pre>
+  </div>
+
+  <p>That URL returns a <strong>1200×630px PNG</strong> — the canonical OG image size. You put that URL directly in your <code>og:image</code> meta tag. No build step. No file to host. No CDN to configure.</p>
+
+  <p>The image is generated on the fly, cached at Cloudflare's edge, and served from 200+ locations globally. Latency is under 50ms for virtually all social crawlers.</p>
+
+  <!-- STEP BY STEP -->
+  <h2>Step-by-step: Adding OG images to a static HTML page</h2>
+
+  <ol class="step-list">
+
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Get your API key</h3>
+        <p>Sign up at <a href="https://snapog.dev/#pricing">snapog.dev</a>. The free tier gives you 10,000 images/month — more than enough for a static site.</p>
+      </div>
+    </li>
+
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Add the meta tags to your <code>&lt;head&gt;</code></h3>
+        <p>For each HTML page, add these five meta tags:</p>
+        <div class="code-block">
+          <div class="code-label">YOUR-PAGE.html — &lt;head&gt;</div>
+          <pre><span class="cm">&lt;!-- Required OG tags --&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:title"</span>       <span class="attr">content</span>=<span class="str">"Your Page Title"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:description"</span>  <span class="attr">content</span>=<span class="str">"A one-sentence summary of your page."</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:url"</span>         <span class="attr">content</span>=<span class="str">"https://yoursite.com/your-page"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:type"</span>        <span class="attr">content</span>=<span class="str">"website"</span> <span class="htag">/&gt;</span>
+
+<span class="cm">&lt;!-- OG image via SnapOG --&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image"</span> <span class="attr">content</span>=<span class="str">"https://api.snapog.dev/og?title=Your+Page+Title&amp;subtitle=Your+Tagline&amp;theme=dark&amp;key=YOUR_API_KEY"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image:width"</span>  <span class="attr">content</span>=<span class="str">"1200"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image:height"</span> <span class="attr">content</span>=<span class="str">"630"</span> <span class="htag">/&gt;</span>
+
+<span class="cm">&lt;!-- Twitter Card (optional but recommended) --&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">name</span>=<span class="str">"twitter:card"</span>        <span class="attr">content</span>=<span class="str">"summary_large_image"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">name</span>=<span class="str">"twitter:title"</span>       <span class="attr">content</span>=<span class="str">"Your Page Title"</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">name</span>=<span class="str">"twitter:description"</span>  <span class="attr">content</span>=<span class="str">"A one-sentence summary."</span> <span class="htag">/&gt;</span>
+<span class="htag">&lt;meta</span> <span class="attr">name</span>=<span class="str">"twitter:image"</span>       <span class="attr">content</span>=<span class="str">"https://api.snapog.dev/og?title=Your+Page+Title&amp;subtitle=Your+Tagline&amp;theme=dark&amp;key=YOUR_API_KEY"</span> <span class="htag">/&gt;</span></pre>
+        </div>
+        <p>Replace <code>Your+Page+Title</code> and <code>Your+Tagline</code> with URL-encoded versions of your text (spaces become <code>+</code> or <code>%20</code>).</p>
+      </div>
+    </li>
+
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Preview the image before publishing</h3>
+        <p>Paste the full URL into your browser. You'll see the image immediately. No cache to purge, no deploy to wait for.</p>
+        <div class="code-block">
+          <div class="code-label">BROWSER URL BAR</div>
+          <pre>https://api.snapog.dev/og?title=My+Blog+Post+Title&subtitle=My+Site+Name&theme=dark&key=YOUR_API_KEY</pre>
+        </div>
+      </div>
+    </li>
+
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Validate with a social debugger</h3>
+        <p>Use the <a href="https://developers.facebook.com/tools/debug/" rel="noopener">Meta Sharing Debugger</a> or the <a href="https://cards-dev.twitter.com/validator" rel="noopener">Twitter Card Validator</a> to confirm your tags are read correctly. Both tools show you exactly what a social crawler sees.</p>
+      </div>
+    </li>
+
+  </ol>
+
+  <!-- AVAILABLE PARAMS -->
+  <h2>Available parameters</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>title</td><td>—</td><td>Main headline (required). URL-encode spaces as <code>+</code>.</td></tr>
+        <tr><td>subtitle</td><td>—</td><td>Secondary line below the title. Good for your site name or category.</td></tr>
+        <tr><td>theme</td><td><code>dark</code></td><td><code>dark</code> or <code>light</code>. Dark renders a dark background, light renders white.</td></tr>
+        <tr><td>logo</td><td>—</td><td>URL of a logo image to embed. Must be publicly accessible.</td></tr>
+        <tr><td>bg</td><td>—</td><td>Background hex color (e.g. <code>1a1a2e</code>). Overrides theme background.</td></tr>
+        <tr><td>key</td><td>—</td><td>Your API key. Required for requests beyond the anonymous trial limit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PLATFORM EXAMPLES -->
+  <h2>Platform-specific examples</h2>
+
+  <h3>GitHub Pages / bare HTML</h3>
+  <p>Works out of the box. Add the meta tags to each <code>.html</code> file's <code>&lt;head&gt;</code>. GitHub Pages serves static files — the OG image lives at SnapOG's CDN, so there's nothing to configure on your host.</p>
+
+  <h3>Jekyll (_layouts/default.html or post.html)</h3>
+  <div class="code-block">
+    <div class="code-label">_layouts/post.html — inside &lt;head&gt;</div>
+    <pre><span class="cm">{%- assign og_title = page.title | url_encode -%}</span>
+<span class="cm">{%- assign og_sub   = site.title  | url_encode -%}</span>
+
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image"</span>
+      <span class="attr">content</span>=<span class="str">"https://api.snapog.dev/og?title={{ og_title }}&amp;subtitle={{ og_sub }}&amp;theme=dark&amp;key={{ site.snapog_key }}"</span> <span class="htag">/&gt;</span></pre>
+  </div>
+  <p>Put your API key in <code>_config.yml</code> as <code>snapog_key: sk_live_…</code>. Jekyll templates handle the variable substitution at build time — each post gets its own unique OG image automatically.</p>
+
+  <h3>Hugo (layouts/partials/head.html)</h3>
+  <div class="code-block">
+    <div class="code-label">layouts/partials/head.html</div>
+    <pre><span class="cm">{{- $title := .Title | urlquery -}}</span>
+<span class="cm">{{- $sub   := .Site.Title | urlquery -}}</span>
+
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image"</span>
+      <span class="attr">content</span>=<span class="str">"https://api.snapog.dev/og?title={{ $title }}&amp;subtitle={{ $sub }}&amp;theme=dark&amp;key={{ .Site.Params.snapogKey }}"</span> <span class="htag">/&gt;</span></pre>
+  </div>
+  <p>Set <code>snapogKey</code> in your <code>hugo.toml</code> under <code>[params]</code>. Hugo's <code>urlquery</code> function handles URL-encoding for you.</p>
+
+  <h3>11ty (Eleventy)</h3>
+  <div class="code-block">
+    <div class="code-label">_includes/head.njk</div>
+    <pre><span class="cm">{%- set ogTitle = title | urlencode -%}</span>
+<span class="cm">{%- set ogSub   = site.name | urlencode -%}</span>
+
+<span class="htag">&lt;meta</span> <span class="attr">property</span>=<span class="str">"og:image"</span>
+      <span class="attr">content</span>=<span class="str">"https://api.snapog.dev/og?title={{ ogTitle }}&amp;subtitle={{ ogSub }}&amp;theme=dark&amp;key={{ site.snapogKey }}"</span> <span class="htag">/&gt;</span></pre>
+  </div>
+
+  <!-- BEFORE / AFTER TABLE -->
+  <h2>Before vs. after</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Approach</th>
+          <th>Setup</th>
+          <th>Unique per page</th>
+          <th>Updates automatically</th>
+          <th>Looks professional</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>No OG image</td>
+          <td class="ok">0 min</td>
+          <td class="bad">—</td>
+          <td class="bad">—</td>
+          <td class="bad">Grey box</td>
+        </tr>
+        <tr>
+          <td>Static PNG per page</td>
+          <td class="bad">15+ min each</td>
+          <td class="ok">Yes</td>
+          <td class="bad">Manual re-export</td>
+          <td class="mid">If designed well</td>
+        </tr>
+        <tr>
+          <td>One generic image</td>
+          <td class="mid">5 min</td>
+          <td class="bad">No</td>
+          <td class="bad">Never</td>
+          <td class="mid">Acceptable</td>
+        </tr>
+        <tr>
+          <td><strong>SnapOG URL params</strong></td>
+          <td class="ok">5 min total</td>
+          <td class="ok">Yes</td>
+          <td class="ok">Yes</td>
+          <td class="ok">Consistent + polished</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">Common mistake</div>
+    <p>Don't forget to URL-encode your title. A title like <code>It's Working!</code> must become <code>It%27s+Working%21</code> in the URL. Most template engines have a built-in filter for this (<code>url_encode</code>, <code>urlquery</code>, <code>urlencode</code>).</p>
+  </div>
+
+  <!-- CACHING -->
+  <h2>How caching works</h2>
+
+  <p>The first time a URL is requested, SnapOG renders the image and caches it at Cloudflare's edge. Subsequent requests for the same URL return the cached copy — so social crawlers that hammer your links in parallel get fast, consistent responses.</p>
+
+  <p>If you change a page title, just update the <code>title=</code> parameter. The new URL gets a fresh render; the old URL stays cached (harmlessly). No manual cache purge required.</p>
+
+  <!-- RELATED -->
+  <hr />
+
+  <div class="related-box">
+    <h3>More developer tools from the Snap suite</h3>
+    <div class="related-links">
+      <a href="https://shot.dev/blog/screenshot-url-one-call" class="related-link">
+        <span class="related-link-tag screenshot">Screenshot</span>
+        How to Take a Screenshot of Any URL with One API Call
+      </a>
+      <a href="https://pdfsnap.dev/blog/html-to-pdf-nodejs" class="related-link">
+        <span class="related-link-tag pdf">PDF</span>
+        How to Convert HTML to PDF in Node.js Without wkhtmltopdf
+      </a>
+      <a href="./og-images-nextjs-without-satori.html" class="related-link">
+        <span class="related-link-tag">OG Image</span>
+        Dynamic OG Images in Next.js Without Writing Satori JSX
+      </a>
+      <a href="./social-preview-images-url-trick.html" class="related-link">
+        <span class="related-link-tag">Quick Win</span>
+        The Laziest Way to Generate Social Preview Images (A URL Trick)
+      </a>
+      <a href="./what-is-open-graph.html" class="related-link">
+        <span class="related-link-tag">OG Image</span>
+        Open Graph Images Explained: What They Are, Sizes &amp; How to Generate Them
+      </a>
+      <a href="./slack-link-preview-fix.html" class="related-link">
+        <span class="related-link-tag">Slack</span>
+        Why Your Links Look Bad in Slack (And How to Fix It)
+      </a>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>Add OG images to your static site today</h2>
+    <p>10,000 images/month free. No build step. Works with any HTML.</p>
+    <a href="https://snapog.dev/#pricing" class="cta-btn">Get your free API key &rarr;</a>
+    <p class="cta-sub">10,000 requests/month free &middot; No card required &middot; Cancel anytime</p>
+  </div>
+
+</article>
+</body>
+</html>
